@@ -1,0 +1,2 @@
+NumP:  8869
+Filtered NumP :  1693
