@@ -11,7 +11,7 @@ Steps to run the TROVA software:
  mode                              Mode for particle tracking [1 forward, -1 backward]
  mass                              Atmospheric mass of particles
  numP                              Particles number
- type_file                         Parameter to use data from FLEXPART-global (2) or FLEXPART-WRF (1)
+ type_file                         Parameter to use data from FLEXPART-WRF (1) or FLEXPART-global (2)
  resolution                        Output data resolution 
  numPdX                            Points number for output mesh in direction X
  numPdY                            Points number for output mesh in direction Y
@@ -31,7 +31,7 @@ Steps to run the TROVA software:
  y_left_lower_corner               lower left latitude of input data
  x_rigth_upper_corner              upper rigth longitude of input data
  y_rigth_upper_corner              upper rigth latitude of input data
- model = FLEXPART-WRF              Model type (e.g. FLEXPART or FLEXPART-WRF)
+ model                             Model type (e.g. FLEXPART or FLEXPART-WRF)
  type_lon                          Format longitude [1 ([0-360]), 2 (lon [-180-180])
  method                            Method to use [1 (Sthol), 2 (Sodemann)]
  threshold                         Threshold for filtering precipitating particles for both methods [e.g. -0.00025 kg/kg]
