@@ -4,7 +4,7 @@ TRansport Of water VApor (TROVA) is a software developed in Python and Fortran f
 
 # What is TROVA?
 
-TROVA allows the use of the FLEXible PARTicle global dispersion model and the FLEXPART-WRF regional model at different spatial resolutions. It also include the methodologies of Sthol and James (2005) and Sodemann et al. (2008). It contains two main modules:
+TROVA allows the use of the FLEXible PARTicle global dispersion model and the FLEXPART-WRF regional model at different spatial resolutions. It also include the methodologies of Stohl and James (2005) and Sodemann et al. (2008). It contains two main modules:
 
 1- Developed in Python that is responsible for reading the files, configuring TROVA and generating the outputs of the moisture budget *(Evaporation (E)-Precipitation (P))* for the number of days selected in the simulations.
 
@@ -50,7 +50,7 @@ shutil
  sh install.sh
  ```
  
-### Modification of the input file to run TROVA
+### Input file to run TROVA
 
 To use TROVA you must adjust the input file depending on the problem to be solved. A description of each parameter is shown below:
  ```
@@ -120,7 +120,7 @@ On a HPC with Linux:
 
 ```
 cd src
-Create an execution code for example for a queue manager like slurm (See run_example_HPC/run_example.sh)
+Create an execution code for example for a queue manager like slurm (See https://github.com/tramo-ephyslab/TROVA-master/blob/main/run_example_HPC/run_example.sh)
 Then execute: sbatch run_example.sh
 ```
 
@@ -129,7 +129,7 @@ Here, we provide two examples:
 
 1- TROVA is used to determine moisture sources for a tropical cyclone (October 17, 2014, at 18 UTC). In this case, a regional mask is used and the outputs of the FLEXPART dispersion model are used (https://github.com/tramo-ephyslab/TROVA-master/blob/main/Masks/mask_AL082014_20141017_18.nc). The configuration file for this case is shown in the https://github.com/tramo-ephyslab/TROVA-master/blob/main/Inputs/input_back_TC.cfg directory. In this example, the methodology of Sodeman et al. (2008) was used. The output can be consulted in the folder: https://github.com/tramo-ephyslab/TROVA-master/blob/main/output/2014101718/back_2014101718.nc. The result is displayed in the directory: https://github.com/tramo-ephyslab/TROVA-master/blob/main/Figures/E_P_10-day_TC_backward.png. More general results of TROVA applications to determine moisture sources associated with tropical cyclones are shown by Perez-Alarcon et al. (2022a, 2022b).
 
-2- TROVA is used in forward in time to determine the moisture sinks (October 10, 2014, at 00 UTC) associated with the main source of the North Atlantic Ocean (NATL). In this case, a global mask is used and the outputs of the FLEXPART dispersion model are used (https://github.com/tramo-ephyslab/TROVA-master/blob/main/Masks/NATL.nc). The configuration file for this case is shown in the directory https://github.com/tramo-ephyslab/TROVA-master/blob/main/Inputs/input_forw_NATL.cfg.  In this example, the methodology of Sthol and James (2005) was used. The output can be consulted in the folder: https://github.com/tramo-ephyslab/TROVA-master/blob/main/output/2014100700/forw_2014100700.nc.
+2- TROVA is used in forward in time to determine the moisture sinks (October 10, 2014, at 00 UTC) associated with the main source of the North Atlantic Ocean (NATL). In this case, a global mask is used and the outputs of the FLEXPART dispersion model are used (https://github.com/tramo-ephyslab/TROVA-master/blob/main/Masks/NATL.nc). The configuration file for this case is shown in the directory https://github.com/tramo-ephyslab/TROVA-master/blob/main/Inputs/input_forw_NATL.cfg.  In this example, the methodology of Stohl and James (2005) was used. The output can be consulted in the folder: https://github.com/tramo-ephyslab/TROVA-master/blob/main/output/2014100700/forw_2014100700.nc.
 
 The necessary data to be able to carry out tests with TROVA can be downloaded at the link: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6490365.svg)](https://doi.org/10.5281/zenodo.6490365)
 
@@ -139,7 +139,7 @@ This code is not bug-free. Please report any bugs through 'Issues': https://gith
 
 ## Contact and support
 
-José Carlos fernández Alvarez (jose.carlos.fernandez.alvarez@uvigo.es) and Albenis Pérez Alarcón (albenis.perez.alarcon@uvigo.es)
+José Carlos Fernández Alvarez (jose.carlos.fernandez.alvarez@uvigo.es) and Albenis Pérez Alarcón (albenis.perez.alarcon@uvigo.es)
  
 # References
 [1] Stohl A, James PA. A Lagrangian analysis of the atmospheric branch of the global water cycle: Part II: Earth’s river catchments ocean basins, and moisture transports between them. J. Hydrometeorol. 2005; 6:961–984. https://doi.org/10.1175/JHM470.1.
