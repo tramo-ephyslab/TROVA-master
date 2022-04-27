@@ -123,6 +123,13 @@ cd src
 Create an execution code for example for a queue manager like slurm (See example/run_example.sh)
 Then execute: sbatch run_example.sh
 ```
+
+# An example
+Here, we provide two examples:
+
+1- Moisture sources for a tropical cyclone (October 17, 2014, at 18 UTC) are determined. In this case, a regional mesh is used and the outputs of the FLEXPART dispersion model are used. The configuration file for this case is shown in the directory Inputs/input_back_TC.cfg.
+
+
  
 # References
 [1] Stohl A, James PA. A Lagrangian analysis of the atmospheric branch of the global water cycle: Part II: Earth’s river catchments ocean basins, and moisture transports between them. J. Hydrometeorol. 2005; 6:961–984. https://doi.org/10.1175/JHM470.1.
