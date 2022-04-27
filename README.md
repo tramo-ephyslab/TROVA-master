@@ -118,7 +118,7 @@ On a HPC with Linux:
 
 ```
 cd src
-Create an execution code for example for a queue manager like slurm (See example/run_example.sh)
+Create an execution code for example for a queue manager like slurm (See run_example/run_example.sh)
 Then execute: sbatch run_example.sh
 ```
 
