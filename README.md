@@ -135,7 +135,7 @@ The necessary data to be able to carry out tests with TROVA can be downloaded at
 
 # Important notes
 
-This code is not bug-free. Please report any bugs through 'Issues'
+This code is not bug-free. Please report any bugs through 'Issues': https://github.com/tramo-ephyslab/TROVA-master/issues
 
 ## Contact and support
 
