@@ -22,8 +22,8 @@ This section describes the prerequisites required to run TROVA, as well as the s
 
 To run TROVA, you need
 * Python3
-* [Git] https://git-scm.com/
-* [Anaconda3] https://www.anaconda.com/
+* [![Git](https://git-scm.com/)](https://git-scm.com/)
+* [![Anaconda3](https://www.anaconda.com/)](https://www.anaconda.com/)
 * Linux
 
 The main packages required to run TROVA are:
@@ -128,7 +128,10 @@ Then execute: sbatch run_example.sh
 Here, we provide two examples:
 
 1- Moisture sources for a tropical cyclone (October 17, 2014, at 18 UTC) are determined. In this case, a regional mesh is used and the outputs of the FLEXPART dispersion model are used. The configuration file for this case is shown in the directory Inputs/input_back_TC.cfg.
-![Esta es una imagen](TROVA-master/Figures/MU_AL082014_20141017_18I.png )
+
+2- 
+
+
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6490365.svg)](https://doi.org/10.5281/zenodo.6490365)
 
  
