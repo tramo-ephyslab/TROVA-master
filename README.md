@@ -52,14 +52,14 @@ shutil
  
 ### Modification of the input file to run TROVA
 
-A description of each parameter is shown below:
+To use TROVA you must adjust the input file depending on the problem to be solved. A description of each parameter is shown below:
  ```
  path                              Input data path
  path_output                       Outputs path
  mode                              Mode for particle tracking [1 forward, -1 backward]
  mass                              Atmospheric mass of particles
  numP                              Particles number
- type_file                         Parameter to use data from FLEXPART-global (2) or FLEXPART-WRF (1)
+ type_file                         Parameter to use data from FLEXPART-WRF (1) and FLEXPART-global (2)
  resolution                        Output data resolution 
  numPdX                            Points number for output mesh in direction X
  numPdY                            Points number for output mesh in direction Y
@@ -125,7 +125,7 @@ Then execute: sbatch run_example.sh
 # Examples
 Here, we provide two examples:
 
-1- TROVA is used to determine moisture sources for a tropical cyclone (October 17, 2014, at 18 UTC). In this case, a regional mask is used and the outputs of the FLEXPART dispersion model are used (https://github.com/tramo-ephyslab/TROVA-master/blob/main/Masks/mask_AL082014_20141017_18.nc). The configuration file for this case is shown in the https://github.com/tramo-ephyslab/TROVA-master/blob/main/Inputs/input_back_TC.cfg directory. The result is displayed in the directory: https://github.com/tramo-ephyslab/TROVA-master/blob/main/Figures/E_P_10-day_TC_backward.png
+1- TROVA is used to determine moisture sources for a tropical cyclone (October 17, 2014, at 18 UTC). In this case, a regional mask is used and the outputs of the FLEXPART dispersion model are used (https://github.com/tramo-ephyslab/TROVA-master/blob/main/Masks/mask_AL082014_20141017_18.nc). The configuration file for this case is shown in the https://github.com/tramo-ephyslab/TROVA-master/blob/main/Inputs/input_back_TC.cfg directory. In this example, the methodology of Sodeman et al. (2008). The output can be consulted in the folder: https://github.com/tramo-ephyslab/TROVA-master/blob/main/output/. The result is displayed in the directory: https://github.com/tramo-ephyslab/TROVA-master/blob/main/Figures/E_P_10-day_TC_backward.png.
 
 2- TROVA is used in forward in time to determine the moisture sinks (October 10, 2014, at 00 UTC) associated with the main source of the North Atlantic Ocean (NATL). In this case, a global mask is used and the outputs of the FLEXPART dispersion model are used (https://github.com/tramo-ephyslab/TROVA-master/blob/main/Masks/NATL.nc). The configuration file for this case is shown in the directory https://github.com/tramo-ephyslab/TROVA-master/blob/main/Inputs/input_forw_NATL.cfg. 
 
