@@ -47,7 +47,7 @@ shutil
  ```
  2- Install python requirements in anaconda environment.
  
- 3- Enter the src/ directory and execute the install.sh code. This creates the executable of the fortran functions used by python for numerical computation.
+ 3- Enter the src/ directory and execute the *install.sh* code. This creates the executable of the fortran functions used by python for numerical computation.
  ```
  sh install.sh
  ```
@@ -124,15 +124,22 @@ Create an execution code for example for a queue manager like slurm (See example
 Then execute: sbatch run_example.sh
 ```
 
-# An example
+# Examples
 Here, we provide two examples:
 
-1- TROVA is used to determine moisture sources for a tropical cyclone (October 17, 2014, at 18 UTC). In this case, a regional mask is used and the outputs of the FLEXPART dispersion model are used (Masks/mask_AL082014_20141017_18.nc). The configuration file for this case is shown in the Inputs/input_back_TC.cfg directory.
+1- TROVA is used to determine moisture sources for a tropical cyclone (October 17, 2014, at 18 UTC). In this case, a regional mask is used and the outputs of the FLEXPART dispersion model are used (Masks/mask_AL082014_20141017_18.nc). The configuration file for this case is shown in the Inputs/input_back_TC.cfg directory. The result is displayed in the directory: Figures/E_P_10-day_TC_backward.png.
 
-2- TROVA is used in forward in time to determine the moisture sinks (October 10, 2014, at 00 UTC) associated with the main source of the North Atlantic Ocean (NATL). In this case, a global mask is used and the outputs of the FLEXPART dispersion model are used (Masks/NATL.nc). The configuration file for this case is shown in the directory Inputs/input_forw_NATL.cfg.
+2- TROVA is used in forward in time to determine the moisture sinks (October 10, 2014, at 00 UTC) associated with the main source of the North Atlantic Ocean (NATL). In this case, a global mask is used and the outputs of the FLEXPART dispersion model are used (Masks/NATL.nc). The configuration file for this case is shown in the directory Inputs/input_forw_NATL.cfg. 
 
 The necessary data to be able to carry out tests with TROVA can be downloaded at the link: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6490365.svg)](https://doi.org/10.5281/zenodo.6490365)
 
+# Important notes
+
+This code is not bug-free. Please report any bugs through 'Issues'
+
+## Contact and support
+
+José Carlos fernández Alvarez (jose.carlos.fernandez.alvarez@uvigo.es) and Albenis Pérez Alarcón (albenis.perez.alarcon@uvigo.es)
  
 # References
 [1] Stohl A, James PA. A Lagrangian analysis of the atmospheric branch of the global water cycle: Part II: Earth’s river catchments ocean basins, and moisture transports between them. J. Hydrometeorol. 2005; 6:961–984. https://doi.org/10.1175/JHM470.1.
