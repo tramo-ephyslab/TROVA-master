@@ -112,13 +112,15 @@ On a Linux computer:
 ```
 cd src
 mpirun -np num_CPU python TROVA.py input_file_path
+
+e.g (mpirun -np 4 python TROVA.py input_back_TC.cfg)
 ```
 
 On a HPC with Linux:
 
 ```
 cd src
-Create an execution code for example for a queue manager like slurm (See run_example/run_example.sh)
+Create an execution code for example for a queue manager like slurm (See run_example_HPC/run_example.sh)
 Then execute: sbatch run_example.sh
 ```
 
