@@ -1,7 +1,15 @@
 # TROVA: TRansport Of water VApor
 
-TRansport Of water VApor (TROVA) is a software developed in Python and Fortran for the study of moisture sources and sinks. This allows the use of the FLEXible PARTicle global dispersion model and the FLEXPART-WRF regional model at different spatial resolutions. They also include the methodologies of Sthol and James (2005) and Sodemann et al. (2008).
+TRansport Of water VApor (TROVA) is a software developed in Python and Fortran for the study of moisture sources and sinks. It has been developed within the LAGRIMA project at the EPhysLab (Environmental Physics Laboratory) at the University of Vigo.
 
 # What is TROVA?
 
+TROVA allows the use of the FLEXible PARTicle global dispersion model and the FLEXPART-WRF regional model at different spatial resolutions. They also include the methodologies of Sthol and James (2005) and Sodemann et al. (2008).
+
 # What do I need to get and run TROVA?
+
+
+# References
+[1] Stohl A, James PA. A Lagrangian analysis of the atmospheric branch of the global water cycle: Part II: Earth’s river catchments ocean basins, and moisture transports between them. J. Hydrometeorol. 2005; 6:961–984. https://doi.org/10.1175/JHM470.1.
+
+[2] Sodemann H, Schwierz C, Wernli H. Interannual variability of Greenland winter precipitation sources: Lagrangian moisture diagnostic and North Atlantic Oscillation influence. J. Geophys. Res.-Atmos. 2008; 113:D03107. https://doi.org/10.1029/2007JD008503. 
