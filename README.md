@@ -14,6 +14,7 @@ It contains 2 main modules:
 
 
 # What do I need to get and run TROVA?
+
 ## Prerequisites and Installation
 This section describes the prerequisites required to run TROVA, as well as the steps to install it.
 
@@ -80,7 +81,7 @@ A description of each parameter is shown below:
  y_left_lower_corner               lower left latitude of input data
  x_rigth_upper_corner              upper rigth longitude of input data
  y_rigth_upper_corner              upper rigth latitude of input data
- model = FLEXPART-WRF              Model type (e.g. FLEXPART or FLEXPART-WRF)
+ model                             Model type (e.g. FLEXPART or FLEXPART-WRF)
  type_lon                          Format longitude [1 ([0-360]), 2 (lon [-180-180])
  method                            Method to use [1 (Sthol), 2 (Sodemann)]
  threshold                         Threshold for filtering precipitating particles for both methods [e.g. -0.00025 kg/kg]
@@ -93,9 +94,41 @@ A description of each parameter is shown below:
  file_gz                           Parameter to know whether the input data is compressed or not [0 no, 1 yes]
  save_position_part                Save the dq/dt values for each position of each particle [0 no, 1 yes]
 ```
+### Input data
 
+In addition, to run TROVA the following data sets are needed:
+- Outputs of traces air parcels and their properties from the global dispersion model FLEXPARTv9 (Piso et al., 2019) or higher or from its version for regional domains FLEXPART-WRFv3.3.2 (Brioude et al., 2013).
+
+- Target regions mask that will be used for tracking the particles.
+
+# How do I run TROVA?
+
+To run TROVA, change into the src directory
+
+**num_CPU:** *CPU numbers to use (preferably divisible by 4).*
+
+**input_file_path:** *Input file path for TROVA run.*
+
+On a Linux computer:
+
+```
+cd src
+mpirun -np num_CPU python TROVA.py input_file_path
+```
+
+On a HPC with Linux:
+
+```
+cd src
+Create an execution code for example for a queue manager like slurm (See example/run_example.sh)
+Then execute: sbatch run_example.sh
+```
  
 # References
 [1] Stohl A, James PA. A Lagrangian analysis of the atmospheric branch of the global water cycle: Part II: Earth’s river catchments ocean basins, and moisture transports between them. J. Hydrometeorol. 2005; 6:961–984. https://doi.org/10.1175/JHM470.1.
 
 [2] Sodemann H, Schwierz C, Wernli H. Interannual variability of Greenland winter precipitation sources: Lagrangian moisture diagnostic and North Atlantic Oscillation influence. J. Geophys. Res.-Atmos. 2008; 113:D03107. https://doi.org/10.1029/2007JD008503. 
+
+[3] Piso I et al. The Lagrangian particle dispersion model FLEXPART version 10.3. Geosci. Model Dev. Discuss. 2019; https://doi.org/10.5194/gmd-2018-333.
+
+[4] Brioude J et al. The Lagrangian particle dispersion model FLEXPART-WRF version 3.1. Geosci. Model Dev. 2013; 6:1889–1904. https://doi.org/10.5194/gmd-6-1889-2013.
