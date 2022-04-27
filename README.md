@@ -127,9 +127,9 @@ Then execute: sbatch run_example.sh
 # An example
 Here, we provide two examples:
 
-1- TROVA is used to determine moisture sources for a tropical cyclone (October 17, 2014, at 18 UTC). In this case, a regional grid is used and the outputs of the FLEXPART dispersion model are used. The configuration file for this case is shown in the Inputs/input_back_TC.cfg directory.
+1- TROVA is used to determine moisture sources for a tropical cyclone (October 17, 2014, at 18 UTC). In this case, a regional mask is used and the outputs of the FLEXPART dispersion model are used (Masks/mask_AL082014_20141017_18.nc). The configuration file for this case is shown in the Inputs/input_back_TC.cfg directory.
 
-2- TROVA is used in forward in time to determine the moisture sinks (October 10, 2014, at 00 UTC) associated with the main source of the North Atlantic Ocean (NATL). In this case, a global mask is used and the outputs of the FLEXPART dispersion model are used (). The configuration file for this case is shown in the directory Inputs/input_forw_NATL.cfg.
+2- TROVA is used in forward in time to determine the moisture sinks (October 10, 2014, at 00 UTC) associated with the main source of the North Atlantic Ocean (NATL). In this case, a global mask is used and the outputs of the FLEXPART dispersion model are used (Masks/NATL.nc). The configuration file for this case is shown in the directory Inputs/input_forw_NATL.cfg.
 
 The necessary data to be able to carry out tests with TROVA can be downloaded at the link: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6490365.svg)](https://doi.org/10.5281/zenodo.6490365)
 
