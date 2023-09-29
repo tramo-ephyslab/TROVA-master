@@ -14,6 +14,8 @@ from pathlib import Path
 import warnings
 import gzip
 import shutil
+import netCDF4
+from netCDF4 import date2num
 from functions import k_dq as K_dq
 from functions import read_binary_file as RBF
 from functions import determined_id as D_id
@@ -111,7 +113,12 @@ def load_parameters(input_file_name):
     params = Params(input_file_name)
     return params
 
-def function(latitude, longitude, var, filename,path, name_var, unit_var):
+def convert_date_to_ordinal(year, month, day, hour, minute, second):
+    date=datetime(year, month, day, hour, minute, second)
+    date_=netCDF4.date2num(date, "days since 1900-01-01", "gregorian")
+    return date_
+
+def function(latitude, longitude, var, filename,path, name_var, unit_var, date_save):
 
     ncout = Dataset(path+filename+".nc", 'w', format='NETCDF4')
     ncout.createDimension('lat', len(latitude))
@@ -134,8 +141,11 @@ def function(latitude, longitude, var, filename,path, name_var, unit_var):
     time = ncout.createVariable('time', np.dtype('float64').char, ('time'))
     time.standard_name = 'time'
     time.long_name = 'time'
-    time.units = 'day'
     time.axis = 't'
+    time.calendar="gregorian"
+    time.description = "days since 1900-01-01" ;
+    time.units = "days since 1900-01-01" ;
+
 
     vout = ncout.createVariable(name_var, np.dtype('float').char, ('time','lat','lon'),zlib=True)
     vout.long_name = name_var
@@ -152,7 +162,7 @@ def function(latitude, longitude, var, filename,path, name_var, unit_var):
     vout.original_name = name_var
     lon[:] = longitude
     lat[:]= latitude
-    time[:]= time_var
+    time[:]= date_save[:]
     vout[:,:,:] = var
     if name_var=="E_P":
         vvout[:,:] = np.sum(var, axis=0)
@@ -285,6 +295,12 @@ def time_calc(init_time,h_diff):
 
     formatted_time = datetime.strptime(init_time, "%Y-%m-%d %H:%M:%S")
     calculated_time=formatted_time+timedelta(hours=h_diff)
+    return calculated_time
+
+def time_calc_day(init_time,day_diff):
+
+    formatted_time = datetime.strptime(init_time, "%Y-%m-%d %H:%M:%S")
+    calculated_time=formatted_time+timedelta(days=day_diff)
     return calculated_time
 
 def generate_file(paso, cant_plazo, fecha, path, key_gz):
@@ -673,6 +689,9 @@ def main_process(path, paso, comm, size, rank, resolution, numPdX, numPdY, cant_
         array_day=np.empty((len(t)-1,dimX-1, dimY-1))
         array_day_por=np.empty((len(t)-1,dimX-1, dimY-1))
 
+        date_save=[]
+        date_save.append(convert_date_to_ordinal(int(year), int(month), int(day), int(hour), 0, 0))
+
         for ii in range(len(t)-1):
             final_results=np.array(K_dq(matrix_result[t[ii]:t[ii+1],:,:-1],lon,lat,numPdY,numPdX,len(matrix_result[t[ii]:t[ii+1],0,0]),len(matrix_result[0,:,0])),dtype=np.float64)
             E_P=final_results*(density)/area
@@ -680,6 +699,9 @@ def main_process(path, paso, comm, size, rank, resolution, numPdX, numPdY, cant_
                 POR=np.array(K_dq_POR(matrix_result_por[t[ii]:t[ii+1],:,:],lon,lat,numPdY,numPdX,len(matrix_result_por[t[ii]:t[ii+1],0,0]),len(matrix_result_por[0,:,0])),dtype=np.float64)
             if paso ==-1:
                 array_day[int (ndb[ii]-1), :,:]=E_P
+                date_back=time_calc_day(year+"-"+month+"-"+day+" "+hour+":00:00", ndb[ii]*(-1))
+                
+                date_save.append(convert_date_to_ordinal(int(date_back.year), int(date_back.month), int(date_back.day), int(date_back.hour), 0, 0))
                 if output_txt!=0:
                     np.savetxt(path_output+folder+"/day_"+str(ndb[ii])+"_"+folder+".txt", E_P)
                 if method==2:
@@ -688,21 +710,23 @@ def main_process(path, paso, comm, size, rank, resolution, numPdX, numPdY, cant_
                         np.savetxt(path_output+folder+"/day_POR_"+str(ndb[ii])+"_"+folder+".txt", POR)
             if paso ==1:
                 array_day[int(ndf[ii]-1), :,:]=E_P
+                date_forw=time_calc_day(year+"-"+month+"-"+day+" "+hour+":00:00", ndf[ii])
+                date_save.append(convert_date_to_ordinal(int(date_forw.year), int(date_forw.month), int(date_forw.day), int(date_forw.hour), 0, 0))
                 if output_txt!=0:
                     np.savetxt(path_output+folder+"/day_"+str(ndf[ii])+"_"+folder+".txt", E_P)
         if paso ==-1:
             if output_nc!=0:
-                function(lat_plot[:,0], lon_plot[0,:], array_day, "back_"+folder, path_output+folder+"/", "E_P", "mm/day")
+                function(lat_plot[:,0], lon_plot[0,:], array_day, "back_"+folder, path_output+folder+"/", "E_P", "mm/day", date_save[1:])
             if output_npy!=0:
                 np.save(path_output+folder+"/"+"back_"+folder+".npy", array_day)
             if method==2:
                 if output_nc!=0:
-                    function(lat_plot[:,0], lon_plot[0,:], array_day_por, "POR_back_"+folder, path_output+folder+"/","P_C", "%")
+                    function(lat_plot[:,0], lon_plot[0,:], array_day_por, "POR_back_"+folder, path_output+folder+"/","P_C", "%", date_save[1:])
                 if output_npy!=0:
                     np.save(path_output+folder+"/"+"POR_back_"+folder+".npy", array_day_por)
         if paso == 1:
             if output_nc!=0:
-                function(lat_plot[:,0], lon_plot[0,:], array_day, "forw_"+folder, path_output+folder+"/", "E_P", "mm/day")
+                function(lat_plot[:,0], lon_plot[0,:], array_day, "forw_"+folder, path_output+folder+"/", "E_P", "mm/day", date_save[:-1])
             if output_npy!=0:
                 np.save(path_output+folder+"/"+"forw_"+folder+".npy", array_day)
 
@@ -763,7 +787,7 @@ if __name__=='__main__':
                 print (' *****************************************************************************************')
                 print (" *                    EPhysLab (Environmental Physics Laboratory)                        *")
                 print (" *                        TRansport Of water VApor (TROVA)                               *")
-                print (" *                             version 1.0 (28-03-2022)                                  *")
+                print (" *                             version 1.1 (28-09-2022)                                  *")
                 TROVA_LOGO()
                 print (" *                            Edificio Campus da Auga                                    *")
                 print (" *                               University of Vigo                                      *")
