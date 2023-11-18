@@ -670,7 +670,6 @@ def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
         name_txt_part=name_file.split("/")
         f=open(path_output+name_txt_part[-1].split("_")[-1].split(".")[0]+"/"+name_txt_part[-1].split("_")[-1].split(".")[0]+".txt", "a")
     if key_gz==1:
-        print("descomponiendo")
         desc_gz(name_file)
         part_post=read_binaryFile_fortran(name_file[:-3], type_file, x_left_lower_corner,y_left_lower_corner,
                x_right_upper_corner,y_right_upper_corner)
@@ -695,7 +694,6 @@ def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
 
     if key_gz==1:
         desc_gz(lista_partposi[-2])
-        print("descomponiendo")
         part_post_i=read_binaryFile_fortran(lista_partposi[-2][:-3], type_file, x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner)
         cmd_rm= "rm -rf "+lista_partposi[-2][:-3]
         os.system(cmd_rm)
