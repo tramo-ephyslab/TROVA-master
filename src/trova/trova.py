@@ -17,10 +17,10 @@ import warnings
 import gzip
 import shutil
 from numpy import dtype
-import imp
 import matplotlib.pylab as plt
 from mpl_toolkits.mplot3d import Axes3D
 import math
+import importlib.machinery
 from .functions import k_dq as K_dq
 from .functions import k_dq_layers as K_dq_layers
 from .functions import read_binary_file as RBF
@@ -1167,7 +1167,8 @@ def main_process(path, paso, comm, size, rank, resolution, numPdX, numPdY, dtime
 
 def TROVA_main(input_file):
     
-    content = imp.load_source("", input_file)
+    loader = importlib.machinery.SourceFileLoader("", input_file)
+    content = loader.load_module()
     year_init = check_paths(content, "year_case_init")
     path = check_paths(content, "path_data")
     path_output = check_paths(content, "path_output")
