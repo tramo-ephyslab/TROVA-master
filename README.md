@@ -60,7 +60,7 @@ conda create -n py38 python=3.8
 - netCDF4 (*conda install -c conda-forge netcdf4*)
 - scipy (*conda install scipy*)
 - importlib (*conda install -c conda-forge importlib*)
-- cartoy (*conda install -c conda-forge cartopy*)
+- cartopy (*conda install -c conda-forge cartopy*)
 - setuptools (*pip install setuptools==58.2.0*)
 
 ### Installation
