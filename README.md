@@ -66,9 +66,7 @@ conda create -n py38 python=3.8
  ```
  git clone https://github.com/tramo-ephyslab/TROVA.git
  ```
- 2- Install python requirements in anaconda environment.
- 
- 3- Enter the TROVA/src/ directory and run the *install_trova.sh* code.
+ 2- Enter the TROVA/src/ directory and run the *install_trova.sh* code.
  ```
  sh install_trova.sh
  ```
