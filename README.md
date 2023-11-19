@@ -20,7 +20,7 @@ This section describes the prerequisites required to run TROVA, as well as the s
 ### Prerequisites
 
 To run TROVA, you need
-* Python3 (> version 3.8)
+* [![Python3](https://www.python.org/)](https://www.python.org/) (> version 3.8)
 * [![Git](https://git-scm.com/)](https://git-scm.com/)
 * [![Anaconda3](https://www.anaconda.com/)](https://www.anaconda.com/)
 * Linux
@@ -286,8 +286,6 @@ Firstly, the necessary data to be able to carry out tests with TROVA can be down
 **2- TROVA is used in forward in time to determine the moisture sinks.**
 
 The following Figure presents the moisture sink pattern associated with the Mediterranean Sea for the month of October 2014. The methodology of Stohl and James (2005) is considered and how it masks the geographical limits of the Mediterranean Sea. The input data for TROVA are the outputs of FLEXPART forced with ERA-Interim.
-
-
 
 # Important notes
 
