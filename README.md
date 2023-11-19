@@ -294,7 +294,7 @@ The following Figure presents the moisture sink pattern associated with the Medi
 
 
 <p align="center" width="100%">
- <img src="https://github.com/tramo-ephyslab/TROVA/blob/main/Figures/Fig2-git.jpg" width=50% height=50%>
+ <img src="https://github.com/tramo-ephyslab/TROVA/blob/main/Figures/Fig2-git.png" width=50% height=50%>
  </p>
 
 # Important notes
