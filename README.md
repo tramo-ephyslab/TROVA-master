@@ -59,7 +59,9 @@ conda create -n py38 python=3.8
 - time (*conda install -c conda-forge time*)
 - netCDF4 (*conda install -c conda-forge netcdf4*)
 - scipy (*conda install scipy*)
-- imp (*conda install -c conda-forge imp*)
+- importlib (*conda install -c conda-forge importlib*)
+- cartoy (*conda install -c conda-forge cartopy*)
+- setuptools (*pip install setuptools==58.2.0*)
 
 ### Installation
  1- Clone the repository 
