@@ -292,6 +292,11 @@ Firstly, the necessary data to be able to carry out tests with TROVA can be down
 
 The following Figure presents the moisture sink pattern associated with the Mediterranean Sea for the month of October 2014. The methodology of Stohl and James (2005) is considered and how it masks the geographical limits of the Mediterranean Sea. The input data for TROVA are the outputs of FLEXPART forced with ERA-Interim.
 
+
+<p align="center" width="100%">
+ <img src="https://github.com/tramo-ephyslab/TROVA/blob/main/Figures/Fig2-git.jpg" width=50% height=50%>
+ </p>
+
 # Important notes
 
 This code is not bug-free. Please report any bugs through 'Issues': https://github.com/tramo-ephyslab/TROVA/issues
