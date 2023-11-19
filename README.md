@@ -45,7 +45,14 @@ To run TROVA, you need
 * [![Anaconda3](https://www.anaconda.com/)](https://www.anaconda.com/)
 * [![Linux](https://www.linux.org/)](https://www.linux.org/)
 
-The main python packages that must be installed are the following (consider using the proposed options):
+
+1- Create a python environment with conda, for example
+
+ ```
+conda create -n py38 python=3.8
+```
+
+2- The main python packages that must be installed are the following (consider using the proposed options):
 
 - numpy (*conda install numpy*)
 - mpi4py (*pip install mpi4py* (or *conda install mpi4py*))
