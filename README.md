@@ -23,7 +23,7 @@ To run TROVA, you need
 * [![Python3](https://www.python.org/)](https://www.python.org/) (> version 3.8)
 * [![Git](https://git-scm.com/)](https://git-scm.com/)
 * [![Anaconda3](https://www.anaconda.com/)](https://www.anaconda.com/)
-* Linux
+* [![Linux](https://www.linux.org/)](https://www.linux.org/)
 
 The main python packages that must be installed are the following (consider using the proposed options):
 
