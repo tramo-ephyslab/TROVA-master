@@ -2,22 +2,22 @@
 
 TRansport Of water VApor (TROVA) is a software developed in Python and Fortran for the study of moisture sources and sinks. It has been developed within the LAGRIMA and SETESTRELO projects at the EPhysLab (Environmental Physics Laboratory) at the University of Vigo. **This is an update of the software presented by Fernández-Alvarez et al. (2022)**
 ```
-# *****************************************************************************************
-# *                    EPhysLab (Environmental Physics Laboratory)                        *
-# *                        TRansport Of water VApor (TROVA)                               *
-# *                             version 1.1 (19-11-2023)                                  *
-# *                        _____ __    ____                                               *
-# *                          |  |  |  /    \ \        //\                                 *
-# *                          |  |__| /      \ \      //__\                                *
-# *                          |  |  \ \      /  \    //    \                               *
-# *                          |  |   \ \____/    \__//      \                              *
-# *                                                                                       *
-# *                            Edificio Campus da Auga                                    *
-# *                               University of Vigo                                      *
-# *                                ephyslab.uvigo.es                                      *
-# *  contact: jose.carlos.fernandez.alvarez@uvigo.es, albenis.perez.alarcon@uvigo.es      *
-# *****************************************************************************************
-#------------------------------------------------------------------------------------------
+*****************************************************************************************
+*                    EPhysLab (Environmental Physics Laboratory)                        *
+*                        TRansport Of water VApor (TROVA)                               *
+*                             version 1.1 (19-11-2023)                                  *
+*                        _____ __    ____                                               *
+*                          |  |  |  /    \ \        //\                                 *
+*                          |  |__| /      \ \      //__\                                *
+*                          |  |  \ \      /  \    //    \                               *
+*                          |  |   \ \____/    \__//      \                              *
+*                                                                                       *
+*                            Edificio Campus da Auga                                    *
+*                               University of Vigo                                      *
+*                                ephyslab.uvigo.es                                      *
+*  contact: jose.carlos.fernandez.alvarez@uvigo.es, albenis.perez.alarcon@uvigo.es      *
+ ****************************************************************************************
+ 
 ```
 
 
