@@ -285,7 +285,7 @@ Firstly, the necessary data to be able to carry out tests with TROVA can be down
  In this case, it is the moisture source pattern associated with the Iberian Peninsula for the month of October 2001. In this analysis, TROVA is used with the methodology of Sodemann et al. (2008) and as input data the outputs of the FLEXPART-WRF model forced with the Community Earth System Model 2 (CESM2) climate model. The mask used is represented in red (the Iberian Peninsula itself).
 
 <p align="center" width="100%">
- <img src="https://github.com/tramo-ephyslab/TROVA/blob/main/Figures/Fig1-git.jpg" height="200" width="300">
+ <img src="https://github.com/tramo-ephyslab/TROVA/blob/main/Figures/Fig1-git.jpg" width=50% height=50%>
  </p>
 
 **2- TROVA is used in forward in time to determine the moisture sinks.**
