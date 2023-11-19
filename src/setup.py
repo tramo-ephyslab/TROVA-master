@@ -5,13 +5,14 @@ import os, os.path
 import setuptools
 import subprocess
 import sysconfig
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 ext_suffix = sysconfig.get_config_var('EXT_SUFFIX') or '.so'
 trova_so = os.path.join('functions' + ext_suffix)
-
 
 try:
 	print(subprocess.check_output(
@@ -24,11 +25,9 @@ except subprocess.CalledProcessError as e:
 else:
 
 	print()
-
 	print("-----------------------------------------------------------------------")
 	print("FORTRAN functions extension has been created as {}".format(trova_so))
 	print("-----------------------------------------------------------------------")
-
 
 setuptools.setup(
     name="trova",
