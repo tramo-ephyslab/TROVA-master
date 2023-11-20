@@ -64,16 +64,32 @@ conda create -n py38 python=3.8
 - setuptools (*pip install setuptools==58.2.0*)
 
 ### Installation
- 1- Clone the repository 
+ 1- First option
+
+   - Clone the repository 
  ```
  git clone https://github.com/tramo-ephyslab/TROVA.git
  ```
- 2- Enter the TROVA/src/ directory and run the *install_trova.sh* code.
+   - Enter the TROVA/src/ directory and run the *install_trova.sh* code.
  ```
  sh install_trova.sh
  ```
- **_NOTE:_** With this option it is installed in the python environment and can be used directly.
+ **_NOTE:_** If you have a problem with the mpi4py library, please check that all the necessary executables are in the created environment (e.g. **"libmpi.so.12"**). If they do not exist, create a symbolic link to the environment you are using (e.g **ln -s /home/jose/WRF/Library/lib/libmpi.so.12 /home/jose/anaconda3/envs/test_env/lib**)
  
+ 2- Second option:
+ 
+  ```
+  conda install -c tramo-ephyslab trova
+  ```
+
+Once installed to check and create the fortran functions the first time it is used, open an ipython and run the following command:
+
+```
+import trova
+ ```
+
+**_NOTE:_** From now on it must have been installed in the python environment and can be used directly like any library.
+
 ## Input file and data to run TROVA
 
 ### Input file
