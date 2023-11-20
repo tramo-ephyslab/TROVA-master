@@ -50,6 +50,7 @@ To run TROVA, you need
 
  ```
 conda create -n py38 python=3.8
+conda activate py38
 ```
 
 2- The main python packages that must be installed are the following (consider using the proposed options):
@@ -68,9 +69,9 @@ conda create -n py38 python=3.8
 
    - Clone the repository 
  ```
- git clone https://github.com/tramo-ephyslab/TROVA.git
+ git clone https://github.com/tramo-ephyslab/TROVA-master.git
  ```
-   - Enter the TROVA/src/ directory and run the *install_trova.sh* code.
+   - Enter the TROVA-master/src/ directory and run the *install_trova.sh* code.
  ```
  sh install_trova.sh
  ```
