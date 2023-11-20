@@ -102,7 +102,7 @@ To use TROVA you must modified the input file depending on the problem to be sol
 #--------------------
 
 #Path to FLEXPART or FLEXPART-WRF partposit binary files [str]
-path_data = ""
+path_data = "/mnt/lustre/hsm/nlsas/notape/home/uvi/fi/tramo/FLEXPART_DATA/"
 
 #Path for TROVA outputs [str]
 path_output = "/mnt/lustre/scratch/nlsas/home/uvi/fi/mst/JoseC/TROVA_NEW/output/"
