@@ -39,14 +39,21 @@ This section describes the prerequisites required to run TROVA, as well as the s
 
 ### Prerequisites
 
-To run TROVA, you need
-* [![Python3](https://www.python.org/)](https://www.python.org/) (> version 3.8)
-* [![Git](https://git-scm.com/)](https://git-scm.com/)
-* [![Anaconda3](https://www.anaconda.com/)](https://www.anaconda.com/)
-* [![Linux](https://www.linux.org/)](https://www.linux.org/)
+To run TROVA, you need:
+
+- [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/release/python-380/)
+
+- [![Git](https://img.shields.io/badge/Git-blue.svg)](https://git-scm.com/)
+
+- [![Anaconda 3](https://img.shields.io/badge/Anaconda-3-green.svg)](https://www.anaconda.com/)
+
+- [![Linux](https://img.shields.io/badge/Linux-red.svg)](https://www.linux.org/)
+
+- [![Fortran](https://img.shields.io/badge/Fortran-yellow.svg)](https://fortran-lang.org/)
 
 
-1- Create a python environment with conda, for example
+
+1- Create a python environment with conda, for example:
 
  ```
 conda create -n py38 python=3.8
@@ -63,21 +70,26 @@ conda activate py38
 - importlib (*conda install -c conda-forge importlib*)
 - cartopy (*conda install -c conda-forge cartopy*)
 - setuptools (*pip install setuptools==58.2.0*)
+- hdf5 (*pip install hdf5*)
+
 
 ### Installation
- 1- First option
+ 1- First option 
+  
+*You must check that all the packages are installed and that there is no error message when they are imported*.
 
-   - Clone the repository 
+   - Clone the repository:
  ```
  git clone https://github.com/tramo-ephyslab/TROVA-master.git
  ```
-   - Enter the TROVA-master/src/ directory and run the *install_trova.sh* code.
+   - Enter the TROVA-master/src/ directory and execute the *install_trova.sh* code.
  ```
  sh install_trova.sh
  ```
- **_NOTE:_** If you have a problem with the mpi4py library, please check that all the necessary executables are in the created environment (e.g. **"libmpi.so.12"**). If they do not exist, create a symbolic link to the environment you are using (e.g **ln -s /home/jose/WRF/Library/lib/libmpi.so.12 /home/jose/anaconda3/envs/test_env/lib**)
- 
+
  2- Second option:
+
+ With this option conda will install the necessary TROVA dependencies.
  
   ```
   conda install -c tramo-ephyslab trova
@@ -91,6 +103,13 @@ import trova
 
 **_NOTE:_** From now on it must have been installed in the python environment and can be used directly like any library.
 
+
+#### Possible problems with python packages:
+
+- If you have a problem with the mpi4py library, please check that all the necessary executables are in the created environment (e.g. **"libmpi.so.12"**). If they do not exist, create a symbolic link to the environment you are using (e.g **ln -s /home/jose/WRF/Library/lib/libmpi.so.12 /home/jose/anaconda3/envs/test_env/lib**)
+
+- If there is a problem with netcdf4, do not use *conda install -c conda-forge netcdf4* but the *pip install netcdf4* option.
+
 ## Input file and data to run TROVA
 
 ### Input file
@@ -102,7 +121,7 @@ To use TROVA you must modified the input file depending on the problem to be sol
 #--------------------
 
 #Path to FLEXPART or FLEXPART-WRF partposit binary files [str]
-path_data = "/mnt/lustre/hsm/nlsas/notape/home/uvi/fi/tramo/FLEXPART_DATA/"
+path_data = ""
 
 #Path for TROVA outputs [str]
 path_output = "/mnt/lustre/scratch/nlsas/home/uvi/fi/mst/JoseC/TROVA_NEW/output/"
@@ -329,7 +348,8 @@ This code is not bug-free. Please report any bugs through 'Issues': https://gith
 
 José Carlos Fernández Alvarez (jose.carlos.fernandez.alvarez@uvigo.es) and Albenis Pérez Alarcón (albenis.perez.alarcon@uvigo.es)
 
-# LICENSE
+# LICENSE 
+
 
 Copyright 2023 Fernández-Alvarez et al. (2022)
 
