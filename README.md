@@ -89,7 +89,7 @@ conda activate py38
 
  2- Second option:
 
- With this option conda will install the necessary TROVA dependencies.
+ *With this option conda will install the necessary TROVA dependencies*.
  
   ```
   conda install -c tramo-ephyslab trova
