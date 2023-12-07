@@ -214,18 +214,18 @@ filter_parcels_dqdt = False
 
 #Threshold for filtering precipitating parcels [float]. It is only necessary if filter_parcels_dqdt = True.
 dqdt_threshold = -0.0001
-
+ 
 #To filter parcels by heigh ["True" / "False"]  [str]
 filter_parcels_height = False
 
 #Vertical layer for filtering parcels by height [lower_layer, upper_layer] [meters]. It is only necessary if filter_parcels_height = True.
-filter_vertical_layers=[0,25000]
+filter_vertical_layers = [0,25000]
 
 #To compute the moisture uptake in vertical layers ["True" / "False"]  [str]
 use_vertical_layers = False
 
 #Vertical layers to compute moisture uptake
-vertical_layers=[0, 750, 1500, 2250, 3000, 4000, 6000, 9000, 12000, 15000, 20000]
+vertical_layers = [0, 750, 1500, 2250, 3000, 4000, 6000, 9000, 12000, 15000, 20000]
 
 #File output format. Set 1 to activate output format and 0 to deactivate [int]
 output_txt = 0
@@ -243,7 +243,7 @@ name_target_region = "CAN"
 file_gz = 0
 
 #---------------
-#AUXILIAR TOOLS
+#Auxiliar tools
 #---------------
 
 #To save particle positions for each time step [str]
@@ -253,14 +253,14 @@ save_position_part = False
 save_position_dqdt = False
 
 #Plotting identified parcels within the target region at time t0 (year_month_day_hour_min) [True /  False] [str]
-plotting_parcels_t0=False
+plotting_parcels_t0 = False
 
 #Ploting identified parcels trajectories on a map [True /  False] [str]
-plotting_parcels_tracks_on_map=False
+plotting_parcels_tracks_on_map = False
 
 #Map limits for plotting [latmin, lonmin, latmax, lonmax, mapcenter, dlat, dlon] [float]
 #map center must be 0 or 180. If center=180, provide lonmin and lonmax in 0-360 format
-maps_limits=[0, -110, 75, 15, 0, 5, 25]
+maps_limits = [0, -110, 75, 15, 0, 5, 25]
 
 #Plotting 3D parcels trajectories [True /  False]
 plotting_3Dparcels_tracks=False
