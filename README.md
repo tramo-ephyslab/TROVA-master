@@ -25,7 +25,7 @@ TRansport Of water VApor (TROVA) is a software developed in Python and Fortran f
 # What is TROVA?  
 
 <p align="center" width="100%">
- <img src="https://github.com/tramo-ephyslab/TROVA/blob/main/Logo/LogoV1.png" width=50% height=50%>
+ <img src="https://github.com/tramo-ephyslab/TROVA/blob/main/Logo/LogoV1.png" width=20% height=20%>
  </p>
 
 TROVA allows the use of the FLEXible PARTicle global dispersion model and the FLEXPART-WRF regional model at different spatial resolutions. It also include the methodologies of Stohl and James (2005) and Sodemann et al. (2008). It contains two main modules:
