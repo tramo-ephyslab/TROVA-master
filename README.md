@@ -5,7 +5,7 @@ TRansport Of water VApor (TROVA) is a software developed in Python and Fortran f
 *****************************************************************************************
 *                    EPhysLab (Environmental Physics Laboratory)                        *
 *                        TRansport Of water VApor (TROVA)                               *
-*                             version 1.1.1(19-11-2023)                                  *
+*                             version 1.1.1 (17-06-2024)                                  *
 *                        _____ __    ____                                               *
 *                          |  |  |  /    \ \        //\                                 *
 *                          |  |__| /      \ \      //__\                                *

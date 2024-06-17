@@ -24,20 +24,60 @@ import importlib.machinery
 from .functions import k_dq as K_dq
 from .functions import k_dq_layers as K_dq_layers
 from .functions import read_binary_file as RBF
-from .functions import determined_id as D_id
-from .functions import search_row as sRow
 from .functions import len_file as lf
-from .functions import kdif as kdif
 from .functions import k_dq_so as K_dq_So
 from .functions import k_dq_por as K_dq_POR
 from .functions import filter_part as Filter_Part
 from .functions import filter_part2 as Filter_Part2
 from .functions import filter_part_by_height as Filter_by_Height
 
-
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 print = functools.partial(print, flush=True)
 
+def Kdif_python(matrix1, matrix2, paso):
+
+    dx, dy = matrix1.shape
+    output = np.full((dx, dy - 1), -999.9, dtype=matrix1.dtype)
+    
+    valid_mask1 = (matrix1[:, 0] != -999.9)
+    valid_mask2 = (matrix2[:, 0] != -999.9)
+    
+    if paso == -1.:
+        valid_indices = np.where(valid_mask1 & valid_mask2)[0]
+        output[valid_indices, 2] = matrix2[valid_indices, 3] - matrix1[valid_indices, 3]
+        output[valid_indices, 1] = matrix1[valid_indices, 2]
+        output[valid_indices, 0] = matrix1[valid_indices, 1]
+        output[valid_indices, 3] = matrix1[valid_indices, 4]
+    
+    elif paso == 1.:
+        valid_indices = np.where(valid_mask1 & valid_mask2)[0]
+        output[valid_indices, 2] = matrix2[valid_indices, 3] - matrix1[valid_indices, 3]
+        output[valid_indices, 1] = matrix2[valid_indices, 2]
+        output[valid_indices, 0] = matrix2[valid_indices, 1]
+        output[valid_indices, 3] = matrix2[valid_indices, 4]
+    
+    return output
+
+def search_row_python(matrix, lista):
+   
+    matrix = np.asarray(matrix)
+    lista = np.asarray(lista)
+    
+    output = np.full((len(lista), matrix.shape[1]), -999.9, dtype=matrix.dtype)
+    matrix_dict = {int(row[0]): row for row in matrix}
+    
+    for i, val in enumerate(lista):
+        if int(val) in matrix_dict:
+            output[i, :] = matrix_dict[int(val)]
+    return output
+
+def determined_id_python(value_mascara, value_mask):
+    
+    value_mascara = np.asarray(value_mascara)
+    vector = np.full(value_mascara.shape, -999, dtype=int)
+    matching_indices = np.where(value_mascara == value_mask)[0]
+    vector[matching_indices] = matching_indices
+    return vector
 
 def check_paths(pfile, path):
 	try:
@@ -45,7 +85,6 @@ def check_paths(pfile, path):
 	except:
 			fpath = ""
 	return fpath
-
 
 def str2boolean(arg):
     if isinstance(arg, bool):
@@ -74,7 +113,6 @@ def get_currentversion():
         version = vfile.readlines()[0].strip()
     return(version)
 
-
 def get_lastupdate():
     pathpkg = os.path.dirname(__file__)
     update_file = pathpkg+"/LAST_UPDATE"
@@ -82,7 +120,6 @@ def get_lastupdate():
     with open(update_file) as ufile:
         lastupdate = ufile.readlines()[0].strip()
     return(lastupdate)
-
 
 def plotting_tracks_3d(particle_positions, fname):
 	fig = plt.figure(figsize=(15,15))
@@ -138,6 +175,7 @@ def ploting_parcels_tracks_map(particle_positions, maps_limits, paso, lat_masked
 	plt.close()
 
 def create_map(maps_limits):
+    
 	import cartopy.crs as ccrs
 	import cartopy.feature as cfeature
 	import matplotlib.ticker as mticker
@@ -221,7 +259,7 @@ def plotting_parcels_within_target_region(particle_positions, maps_limits, paso,
 	plt.savefig(fname,bbox_inches="tight",dpi=600)
 	plt.close()
 
-def generate_fecha_simulation(ndias, cyear, cmonth, cday, chours, cminutes ):
+def generate_fecha_simulation(ndias, cyear, cmonth, cday, chours, cminutes):
 
 	nhour=int(ndias*24)
 	year=[]
@@ -242,9 +280,7 @@ def generate_fecha_simulation(ndias, cyear, cmonth, cday, chours, cminutes ):
 	if not isinstance(cday, list):
 		cday=[cday]
 
-
 	for i in array:
-
 		for yy in cyear:
 			yy=str(int(yy)).zfill(4)
 			for mm in cmonth:
@@ -270,7 +306,6 @@ def generate_fecha_simulation(ndias, cyear, cmonth, cday, chours, cminutes ):
 							mins.append(minn_)
 
 	return year, mes, dia, hora,mins
-
 
 def function(latitude, longitude, var, var_layers, use_vlayers, vlayers, method, varpor, filename,path, name_var, unit_var,date_save):
 
@@ -370,45 +405,47 @@ def function(latitude, longitude, var, var_layers, use_vlayers, vlayers, method,
     ncout.close()
 
 def write_nc(dates, tensor, vartype,filename="output"):
-	ncout = Dataset(filename+".nc", 'w', format='NETCDF4')
-	ncout.history='Parcels positions'
-
-	if vartype=="partpos":
-		ncout.history= "partpos[:,:,0] - parcel ID, partpos[:,:,1] - longitude, partpos[:,:,2] - latitude, partpos[:,:,3] - specific humidity, partpos[:,:,4] - vertical position (m), partpos[:,:,5] - topography high (m), partpos[:,:,6] - density (kg/m3), partpos[:,:,7] - PBL high (m), partpos[:,:,8] - Tropopause high (m), partpos[:,:,9] - temperature (K), partpos[:,:,10] - parcel mass (kg)"
-	if vartype=="dqdt":
-		ncout.history= "partpos[:,:,0] - longitude, partpos[:,:,1] - latitude, partpos[:,:,2] - dq/dt, partpos[:,:,3] - vertical position (m), partpos[:,:,4] - parcel ID, partpos[:,:,5] - specific humidity at starting trcking point (time t0)"
-
-	ndates=len(dates)
-	npart=tensor.shape[1]
-	vprop=tensor.shape[2]
-
-	ncout.createDimension('time', ndates)
-	ncout.createDimension('npart', npart)
-	ncout.createDimension('properties', vprop)
-
-	times = ncout.createVariable('times', dtype('int').char, ('time'))
-	times.standard_name = 'times'
-	times.long_name = 'times (YYYYMMDDHHMM)'
-	times.units = ''
-	times.axis = ''
-
-	parts = ncout.createVariable('parcels', dtype('float32').char, ('npart'))
-	parts.standard_name = 'parcels'
-	parts.long_name = 'Parcels IDs'
-	parts.units = ''
-	parts.axis = ''
-
-	vout = ncout.createVariable('partpos', dtype('float32').char, ('time','npart','properties'))
-	vout.long_name = 'Parcels position'
-	vout.units = ''
-	vout.standard_name = "Parcels position";
-	vout.coordinates = "times,npart, properties" ;
-	vout.original_name = "Parcels position"
-
-	times[:] = dates
-	parts[:]= tensor[0,:,0]
-	vout[:] = tensor[:,:,:]
-	ncout.close()
+    
+    ncout = Dataset(filename+".nc", 'w', format='NETCDF4')
+    ncout.history='Parcels positions'
+    if vartype=="partpos":
+        ncout.history= "partpos[:,:,0] - parcel ID, partpos[:,:,1] - longitude, partpos[:,:,2] - latitude, partpos[:,:,3] - specific humidity, partpos[:,:,4] - vertical position (m), partpos[:,:,5] - topography high (m), partpos[:,:,6] - density (kg/m3), partpos[:,:,7] - PBL high (m), partpos[:,:,8] - Tropopause high (m), partpos[:,:,9] - temperature (K), partpos[:,:,10] - parcel mass (kg)"
+    if vartype=="dqdt":
+        ncout.history= "partpos[:,:,0] - longitude, partpos[:,:,1] - latitude, partpos[:,:,2] - dq/dt, partpos[:,:,3] - vertical position (m), partpos[:,:,4] - parcel ID, partpos[:,:,5] - specific humidity at starting trcking point (time t0)"
+    ndates=len(dates)
+    npart=tensor.shape[1]
+    vprop=tensor.shape[2]
+    
+    ncout.createDimension('time', ndates)
+    ncout.createDimension('npart', npart)
+    ncout.createDimension('properties', vprop)
+    
+    times = ncout.createVariable('times', np.dtype('float64').char, ('time'))
+    times.standard_name = 'times'
+    times.long_name = 'times'
+    times.units = 'day'
+    times.axis = 't'
+    times.calendar="gregorian"
+    times.description = "days since 1900-01-01"
+    times.units = "days since 1900-01-01"
+    
+    parts = ncout.createVariable('parcels', dtype('float32').char, ('npart'))
+    parts.standard_name = 'parcels'
+    parts.long_name = 'Parcels IDs'
+    parts.units = ''
+    parts.axis = ''
+    
+    vout = ncout.createVariable('partpos', dtype('float32').char, ('time','npart','properties'), zlib=True)
+    vout.long_name = 'Parcels position'
+    vout.units = ''
+    vout.standard_name = "Parcels position"
+    vout.coordinates = "times,npart, properties" 
+    vout.original_name = "Parcels position"
+    
+    times[:] = dates
+    parts[:]= tensor[0,:,0]
+    vout[:] = tensor[:,:,:]
+    ncout.close()
 
 
 def create_directory(path):
@@ -419,22 +456,25 @@ def create_directory(path):
     except OSError:
         pass
 
-def read_binaryFile_fortran(filename, type_file,x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner):
-
+def read_binaryFile_fortran(filename, type_file,x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, limit_domain):
+    
     if type_file==1:
         with open(filename,'rb') as inputfile:
             a=b''.join([line for line in inputfile])
         npart=struct.unpack('iiii', a[0:16])
         npart=npart[2]
-        data= RBF(filename,npart,x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner)
+        data= RBF(filename,npart,x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain)
 
     if type_file==2:
         len_a=lf(filename)
         npart=((len_a-12)/60)-1
-        data= RBF(filename,npart, x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner)
-    ind=np.where(data[:, 0]==-999.)
-    data=data[:int(ind[0][0]), :]
+        data= RBF(filename,npart, x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain)
 
+    if limit_domain == 1:
+        ind=np.where(data[:, 0]==-999.)
+        data = np.delete(data, ind[0], axis=0)
+    else:
+        data=data
     return data
 
 def load_mask_grid_NR(filename, name_mascara,name_variable_lon, name_variable_lat):
@@ -485,11 +525,11 @@ def plot_point_(lat, lon,mascara):
 
     ax1.add_feature(cfeature.COASTLINE.with_scale('10m'), linewidth=0.9)
     ax1.add_feature(cfeature.STATES, edgecolor="black",zorder=10)
-    ax1.set_extent([-170.,60.,-30,85], crs=ccrs.PlateCarree())
+    ax1.set_extent([-180.,180.,-90,90], crs=ccrs.PlateCarree())
 
     mascara=mascara.astype("bool")
-    plt.scatter(lon, lat, s=5)
-    plt.scatter(-60,20,s=20,color="r")
+    plt.scatter(lon[mascara], lat[mascara], s=10)
+    
     gl = ax1.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,linewidth=1, color='gray', alpha=0.2, linestyle='--')
     gl.xlabels_top = False
     gl.ylabels_left = True
@@ -497,13 +537,13 @@ def plot_point_(lat, lon,mascara):
     gl.xlines = True
 
     paso_h=10
-    lons=np.arange(np.ceil(-110),np.ceil(40),paso_h)
+    lons=np.arange(np.ceil(-180),np.ceil(180),paso_h)
     gl.xlocator = mticker.FixedLocator(lons)
     gl.xformatter = LONGITUDE_FORMATTER
     gl.yformatter = LATITUDE_FORMATTER
     gl.xlabel_style = {'size': 15, 'color': 'gray'}
     gl.xlabel_style = {'color': 'black'}
-
+    
     plt.savefig("mask.png")
     plt.close()
 
@@ -520,9 +560,10 @@ def funtion_interpol_mascara_2(lat_mascara, lon_mascara, mascara, data):
     return result
 
 def determine_id_binary_grid_NR_fortran(data, lat_mascara, lon_mascara, value_mascara, value_mask):
+    
+    value_mascara = funtion_interpol_mascara(lat_mascara, lon_mascara, value_mascara, data)
+    id_vector = determined_id_python(value_mascara.astype(int), value_mask)
 
-    value_mascara=funtion_interpol_mascara (lat_mascara, lon_mascara, value_mascara, data)
-    id_vector=np.array(D_id(value_mascara, value_mask, len(value_mascara)),dtype=int)
     submatrix=[]
     ind=[]
     for ii in id_vector:
@@ -533,9 +574,7 @@ def determine_id_binary_grid_NR_fortran(data, lat_mascara, lon_mascara, value_ma
     return submatrix
 
 def search_row_fortran(lista, matrix):
-
-    matrix_=np.array(sRow(matrix, lista, len(lista), len(matrix[:,0])), np.float64)
-
+    matrix_ = search_row_python(matrix, lista) 
     return matrix_
 
 def calc_A(resolution, lat, lon):
@@ -550,7 +589,7 @@ def calc_A(resolution, lat, lon):
             area[i,j]=np.abs((gr*rt**2)*( np.sin(gr*lat[i,j]) - np.sin(gr*lat[i+1,j])))*np.abs(resolution)
     return area
 
-def grid_point (resolution, numPdX, numPdY, x_lower_left,y_lower_left):
+def grid_point (resolution, numPdX, numPdY, x_lower_left, y_lower_left):
 
     lat_new=[]
     lon_new=[]
@@ -591,37 +630,62 @@ def time_calcminutes(init_time,h_diff):
     calculated_time=formatted_time+timedelta(minutes=h_diff)
     return calculated_time
 
-def generate_file(paso, dtime, totaltime, fecha, path, key_gz):
-
-    nhour=int(totaltime)+dtime
-    list_fecha=[]
-    listdates=[]
+def generate_file(paso, dtime, totaltime, fecha, path, key_gz, noleap):
+    
+    nhour = int(totaltime) + dtime
+    list_fecha = []
+    listdates = []
+    
     if paso == -1:
-        array =np.arange(nhour,0, -dtime)
+        array = np.arange(nhour, 0, -dtime)
         for i in array:
-            a=str(time_calcminutes(fecha,float(i)*(-1)))
-            var1=a.split(" ")
-            var11=var1[0].split("-")
-            var12=var1[1].split(":")
-            fecha_dia=str(var11[0]+var11[1]+var11[2]+var12[0]+var12[1]+var12[2])
-            name=path+"partposit_"+fecha_dia
-            if key_gz==1:
-                name=path+"partposit_"+fecha_dia+".gz"
-            else:
-                name=path+"partposit_"+fecha_dia
-            list_fecha=np.append(list_fecha, name)
-
-            listdates=np.append(listdates, int(fecha_dia))
-        fecha_=fecha.split(" ")
-        var11=fecha_[0].split("-")
-        var12=fecha_[1].split(":")
-        fecha_dia=str(var11[0]+var11[1]+var11[2]+var12[0]+var12[1]+var12[2])
-        if key_gz==1:
-            name=path+"partposit_"+fecha_dia+".gz"
+            a = str(time_calcminutes(fecha, float(i) * (-1)))
+            var1 = a.split(" ")
+            var11 = var1[0].split("-")
+            var12 = var1[1].split(":")
+            fecha_dia = str(var11[0] + var11[1] + var11[2] + var12[0] + var12[1] + var12[2])
+            name = path + "partposit_" + fecha_dia
+            if key_gz == 1:
+                name = path + "partposit_" + fecha_dia + ".gz"
+            list_fecha = np.append(list_fecha, name)
+            listdates = np.append(listdates, int(fecha_dia))
+        
+        fecha_ = fecha.split(" ")
+        var11 = fecha_[0].split("-")
+        var12 = fecha_[1].split(":")
+        fecha_dia = str(var11[0] + var11[1] + var11[2] + var12[0] + var12[1] + var12[2])
+        if key_gz == 1:
+            name = path + "partposit_" + fecha_dia + ".gz"
         else:
-            name=path+"partposit_"+fecha_dia
-        list_fecha=np.append(list_fecha, name)
-        listdates=np.append(listdates, int(fecha_dia))
+            name = path + "partposit_" + fecha_dia
+        list_fecha = np.append(list_fecha, name)
+        listdates = np.append(listdates, int(fecha_dia))
+        
+        if noleap == 1:
+            ind = []
+            for i in range(len(list_fecha)):
+                name = list_fecha[i].split("/")[-1]
+                date = name.split("_")[-1]
+                if date[4:6] == "02" and date[6:8] == "29":
+                    ind.append(i)
+            if ind:
+                list_fecha = np.delete(list_fecha, ind)
+                listdates = np.delete(listdates, ind)
+
+                first_date_str = list_fecha[0].split("_")[-1].replace(".gz", "")
+                first_date = datetime.strptime(first_date_str, "%Y%m%d%H%M%S")
+        
+                for _ in range(len(ind)):
+                    first_date -= timedelta(minutes=dtime)
+                    while first_date.month == 2 and first_date.day == 29:
+                        first_date -= timedelta(days=1)
+                    new_date_str = first_date.strftime("%Y%m%d%H%M%S")
+                    new_name = path + "partposit_" + new_date_str
+                    if key_gz == 1:
+                        new_name += ".gz"
+                    list_fecha = np.insert(list_fecha, 0, new_name)
+                    listdates = np.insert(listdates, 0, int(new_date_str))
+            
     if paso == 1:
         array =np.arange(0,nhour+dtime, dtime)
         for i in array:
@@ -637,11 +701,60 @@ def generate_file(paso, dtime, totaltime, fecha, path, key_gz):
                 name=path+"partposit_"+fecha_dia
             list_fecha=np.append(list_fecha, name)
             listdates=np.append(listdates, int(fecha_dia))
+        
+        if noleap == 1:
+            ind = []
+            for i in range(len(list_fecha)):
+                name = list_fecha[i].split("/")[-1]
+                date = name.split("_")[-1]
+                if date[4:6] == "02" and date[6:8] == "29":
+                    ind.append(i)
+            if ind:
+                list_fecha = np.delete(list_fecha, ind)
+                listdates = np.delete(listdates, ind)
+            
+                last_date_str = list_fecha[-1].split("_")[-1].replace(".gz", "")
+                last_date = datetime.strptime(last_date_str, "%Y%m%d%H%M%S")
+        
+                for _ in range(len(ind)):
+                    last_date += timedelta(minutes=dtime)
+                    while last_date.month == 2 and last_date.day == 29:
+                        last_date += timedelta(days=1)
+                    new_date_str = last_date.strftime("%Y%m%d%H%M%S")
+                    new_name = path + "partposit_" + new_date_str
+                    if key_gz == 1:
+                        new_name += ".gz"
+                    list_fecha = np.append(list_fecha, new_name)
+                    listdates = np.append(listdates, new_date_str)
 
     return list_fecha, listdates
 
+def find_indices_in_list2(list1, list2):
+    index_dict = {}
+    for index, value in enumerate(list2):
+        if value not in index_dict:
+            index_dict[value] = []
+        index_dict[value].append(index)
+
+    matching_indices = []
+    for value in list1:
+        if value in index_dict:
+            matching_indices.extend(index_dict[value])
+
+    return matching_indices
+
+def save_txt(filename, matrix1, matrix2, matrix3, matrix4):
+    
+    matrix_final = np.empty((len(matrix1), 4))
+    matrix_final[:,0] = matrix1[:]
+    matrix_final[:,1] = matrix2[:]
+    matrix_final[:,2] = matrix3[:]
+    matrix_final[:,3] = matrix4[:]
+    np.savetxt(filename+".txt", matrix_final)
+
+
 def read_proccesor(lista_partposi,submatrix, rank, x_left_lower_corner,y_left_lower_corner,
-               x_right_upper_corner,y_right_upper_corner, model, key_gz, type_file):
+               x_right_upper_corner,y_right_upper_corner, model, key_gz, type_file, limit_domain):
 
     a1=np.arange(len(lista_partposi))
     dx,dy =submatrix.shape
@@ -651,41 +764,40 @@ def read_proccesor(lista_partposi,submatrix, rank, x_left_lower_corner,y_left_lo
         if key_gz==1:
             desc_gz(lista_partposi[i])
             part_post_i=read_binaryFile_fortran(lista_partposi[i][:-3], type_file,x_left_lower_corner,y_left_lower_corner,
-               x_right_upper_corner,y_right_upper_corner)
+               x_right_upper_corner,y_right_upper_corner, limit_domain)
             cmd_rm= "rm -rf "+lista_partposi[i][:-3]
             os.system(cmd_rm)
         else:
             part_post_i=read_binaryFile_fortran(lista_partposi[i], type_file,x_left_lower_corner,y_left_lower_corner,
-               x_right_upper_corner,y_right_upper_corner)
+               x_right_upper_corner,y_right_upper_corner, limit_domain)
+
         matrix_i=search_row_fortran(submatrix[:,0],part_post_i)
         tensor_local[i,:,:]=matrix_i
     return tensor_local
 
 def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name_variable_lat,lat_f, lon_f,rank,size, comm, type_file,
-                 x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, model, method,threshold,filter_value, value_mask, key_gz, path_output,use_vertical_layers, vertical_layers, filter_parcels_height, filter_vertical_layers):
+                 x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, model, method,threshold,filter_value, value_mask, key_gz, path_output,use_vertical_layers, vertical_layers, filter_parcels_height, filter_vertical_layers,limit_domain):
 
     name_file=lista_partposi[-1]
     if rank==0:
         print ("Reading | " + model+" -> ",  name_file)
         name_txt_part=name_file.split("/")
         f=open(path_output+name_txt_part[-1].split("_")[-1].split(".")[0]+"/"+name_txt_part[-1].split("_")[-1].split(".")[0]+".txt", "a")
+    
     if key_gz==1:
         desc_gz(name_file)
         part_post=read_binaryFile_fortran(name_file[:-3], type_file, x_left_lower_corner,y_left_lower_corner,
-               x_right_upper_corner,y_right_upper_corner)
+               x_right_upper_corner,y_right_upper_corner, limit_domain)
         cmd_rm= "rm -rf "+name_file[:-3]
         os.system(cmd_rm)
     else:
         part_post=read_binaryFile_fortran(name_file, type_file, x_left_lower_corner,y_left_lower_corner,
-               x_right_upper_corner,y_right_upper_corner)
-
-
+               x_right_upper_corner,y_right_upper_corner, limit_domain)
+        
     lat_masked, lon_masked, mascara=load_mask_grid_NR(file_mask, name_mascara,name_variable_lon, name_variable_lat)
-
     submatrix=determine_id_binary_grid_NR_fortran(part_post, lat_masked.flatten(), lon_masked.flatten(), mascara.flatten(), value_mask)
     submatrix=submatrix[np.argsort(submatrix[:, 0])]
-
-
+    
     if filter_parcels_height:
        submatrix, counter_part_height = Filter_by_Height(submatrix,submatrix,-1,filter_vertical_layers[0],filter_vertical_layers[1], len(submatrix[:, 0]))
 
@@ -694,25 +806,21 @@ def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
 
     if key_gz==1:
         desc_gz(lista_partposi[-2])
-        part_post_i=read_binaryFile_fortran(lista_partposi[-2][:-3], type_file, x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner)
+        part_post_i=read_binaryFile_fortran(lista_partposi[-2][:-3], type_file, x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, limit_domain)
         cmd_rm= "rm -rf "+lista_partposi[-2][:-3]
         os.system(cmd_rm)
     else:
-        part_post_i=read_binaryFile_fortran(lista_partposi[-2], type_file, x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner)
+        part_post_i=read_binaryFile_fortran(lista_partposi[-2], type_file, x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, limit_domain)
+    
     matrix_i=search_row_fortran(submatrix[:,0],part_post_i)
-
-
+        
     dimX, dimY=matrix_i.shape
 
     if filter_value!=0:
         tmp_matrix=submatrix[:,3] - matrix_i[:,3]
-
-
         aux_matrix=np.copy(submatrix)
         aux_matrix[:,3]=tmp_matrix
-
         omatrix, counter_part=Filter_Part2(aux_matrix,aux_matrix,-1,threshold,len(aux_matrix[:, 0]))
-
         submatrix[omatrix==-999.9]=-999.9
         matrix_i[omatrix==-999.9]=-999.9
 
@@ -722,10 +830,10 @@ def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
     tensor_org=np.ones((len(lista_partposi),dimX ,dimY ))*(-999.9)
     tensor_org[-1,:,:]=submatrix
     tensor_org[-2,:,:]=matrix_i
+    
     n = len(lista_partposi)-2
     count = n // size
     remainder = n % size
-
 
     if rank < remainder:
         start = rank * (count + 1)
@@ -736,8 +844,8 @@ def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
 
     local_list=lista_partposi[start:stop]
     local_results = np.empty((len(local_list), dimX, dimY))
-    local_results= read_proccesor(local_list, submatrix, rank,x_left_lower_corner,y_left_lower_corner,
-               x_right_upper_corner,y_right_upper_corner, model, key_gz, type_file)
+    local_results = read_proccesor(local_list, submatrix, rank,x_left_lower_corner,y_left_lower_corner,
+               x_right_upper_corner,y_right_upper_corner, model, key_gz, type_file, limit_domain)
 
     if rank > 0:
         comm.Send(local_results, dest=0, tag=14)
@@ -765,17 +873,16 @@ def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
             comm.Recv(tmp, source=i, tag=14)
             tensor_t[int(i_start[i]):int(i_stop[i]),:,:]=tmp
             tensor_org[int(i_start[i]):int(i_stop[i]),:,:]=tmp
+    
     comm.Bcast(tensor_t, root=0)
     comm.Bcast(tensor_org, root=0)
+    
     matrix_result=np.ones((len(tensor_t[:,0,0])-1, len(submatrix[:,0]),4))*(-999.9)
     a2=np.arange(len(tensor_t[:,0,0])-1)
 
-    matrix_results=np.ones((len(tensor_org[:,0,0])-1, len(submatrix[:,0]),4))*(-999.9)
-    a3=np.arange(len(tensor_org[:,0,0])-1)
-
     for i in a2[::-1]:
-
-        matrix=kdif(tensor_t[i,:,:5], tensor_t[i+1,:,:5],-1.,len(submatrix[:,0]), 5)
+   
+        matrix = Kdif_python (tensor_t[i,:,:5], tensor_t[i+1,:,:5],-1.)
         matrix_result[i,:,2]=matrix[:,2]
         matrix_result[i,:,1]=matrix[:,1]
         matrix_result[i,:,0]=matrix[:,0]
@@ -814,24 +921,25 @@ def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
     return matrix_result, tensor_t[-1,:,0], matrix_result_por, tensor_t[-1,:,3], tensor_org, lat_masked, lon_masked, mascara
 
 def _forward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name_variable_lat,lat_f, lon_f,rank,size,comm, type_file,
-                x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, model, value_mask, key_gz,path_output,use_vertical_layers, vertical_layers, filter_parcels_height, filter_vertical_layers):
+                x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, model, value_mask, key_gz,path_output,use_vertical_layers, vertical_layers, filter_parcels_height, filter_vertical_layers, limit_domain):
     name_file=lista_partposi[0]
+    
     if rank==0:
         print ("Reading | " + model+" -> ",  name_file)
         name_txt_part=name_file.split("/")
         f=open(path_output+name_txt_part[-1].split("_")[-1].split(".")[0]+"/"+name_txt_part[-1].split("_")[-1].split(".")[0]+".txt", "a")
+    
     if key_gz==1:
         desc_gz(name_file)
-        part_post=read_binaryFile_fortran(name_file[:-3], type_file,x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner)
+        part_post=read_binaryFile_fortran(name_file[:-3], type_file,x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain)
         cmd_rm= "rm -rf "+name_file[:-3]
         os.system(cmd_rm)
     else:
-        part_post=read_binaryFile_fortran(name_file, type_file,x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner)
+        part_post=read_binaryFile_fortran(name_file, type_file,x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain)
 
-    lat_masked, lon_masked , mascara=load_mask_grid_NR(file_mask, name_mascara,name_variable_lon, name_variable_lat)
+    lat_masked, lon_masked, mascara=load_mask_grid_NR(file_mask, name_mascara,name_variable_lon, name_variable_lat)
     submatrix=determine_id_binary_grid_NR_fortran(part_post, lat_masked.flatten(), lon_masked.flatten(), mascara.flatten(), value_mask)
     submatrix=submatrix[np.argsort(submatrix[:, 0])]
-
 
     if filter_parcels_height:
        submatrix, counter_part_height = Filter_by_Height(submatrix,submatrix,-1,filter_vertical_layers[0],filter_vertical_layers[1], len(submatrix[:, 0]))
@@ -839,11 +947,11 @@ def _forward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name_
         print ("Reading | " + model+" -> ",  lista_partposi[1])
     if key_gz==1:
         desc_gz(lista_partposi[1])
-        part_post_i=read_binaryFile_fortran(lista_partposi[1][:-3], type_file, x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner)
+        part_post_i=read_binaryFile_fortran(lista_partposi[1][:-3], type_file, x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain)
         cmd_rm= "rm -rf "+lista_partposi[1][:-3]
         os.system(cmd_rm)
     else:
-        part_post_i=read_binaryFile_fortran(lista_partposi[1], type_file, x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner)
+        part_post_i=read_binaryFile_fortran(lista_partposi[1], type_file, x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain)
     matrix_i=search_row_fortran(submatrix[:,0],part_post_i)
 
     dimX, dimY=matrix_i.shape
@@ -864,7 +972,7 @@ def _forward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name_
 
     local_list=lista_partposi[start+2:stop+2]
     local_results = np.empty((len(local_list), dimX, dimY))
-    local_results= read_proccesor(local_list, submatrix, rank,x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, model, key_gz, type_file)
+    local_results= read_proccesor(local_list, submatrix, rank,x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, model, key_gz, type_file, limit_domain)
 
     if rank > 0:
         comm.Send(local_results, dest=0, tag=14)
@@ -896,11 +1004,10 @@ def _forward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name_
     comm.Bcast(tensor_t, root=0)
     comm.Bcast(tensor_org, root=0)
 
-
     matrix_result=np.ones((len(tensor_t[:,0,0])-1, len(submatrix[:,0]),4))*(-999.9)
     a2=np.arange(len(tensor_t[:,0,0])-1)
     for i in a2:
-        matrix=kdif(tensor_t[i,:,:5], tensor_t[i+1,:,:5],1.,len(submatrix[:,0]), 5)
+        matrix = Kdif_python(tensor_t[i,:,:5], tensor_t[i+1,:,:5],1.)
         matrix_result[i,:,2]=matrix[:,2]
         matrix_result[i,:,1]=matrix[:,1]
         matrix_result[i,:,0]=matrix[:,0]
@@ -926,6 +1033,16 @@ def convert_date_to_ordinal(year, month, day, hour, minute, second):
     date_=netCDF4.date2num(date, "days since 1900-01-01", "gregorian")
     return date_
 
+def decompose_date(value):
+    str_value = str(int(value))
+    year = int(str_value[:4])
+    month = int(str_value[4:6])
+    day = int(str_value[6:8])
+    hour = int(str_value[8:10])
+    minute = int(str_value[10:12])
+    second = int(str_value[12:14])
+    return year, month, day, hour, minute, second
+
 class InputNotInRangeError(Exception):
 
     def __init__(self, message):
@@ -943,7 +1060,6 @@ def to_check_params(paso,type_file,numPdx , numPdy, method, resolution, cant_pla
         pass
     else:
         raise InputNotInRangeError("Only FLEXPART-WRF (type_file = 1) and FLEXPART model (type_file = 2) are allowed")
-
 
     if method==1 or method==2:
         pass
@@ -988,7 +1104,7 @@ def TROVA_LOGO():
     print(" *                                                                                       *")
 
 def main_process(path, paso, comm, size, rank, resolution, numPdX, numPdY, dtime, totaltime, year, month,
-         day, hour, minn, time, path_output,file_mask, name_mascara,name_variable_lon, name_variable_lat,x_lower_left,y_lower_left, type_file,masa,numP, x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, model, method, threshold, filter_value, output_txt, output_npy,output_nc, value_mask, key_gz, save_position_part, use_vertical_layers, vertical_layers,save_position_dqdt, filter_parcels_height,filter_vertical_layers, plotting_parcels_t0, plotting_parcels_tracks_on_map, plotting_3Dparcels_tracks, maps_limits):
+         day, hour, minn, time, path_output,file_mask, name_mascara,name_variable_lon, name_variable_lat,x_lower_left,y_lower_left, type_file,masa,numP, x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, model, method, threshold, filter_value, output_txt, output_npy,output_nc, value_mask, key_gz, save_position_part, use_vertical_layers, vertical_layers,save_position_dqdt, filter_parcels_height,filter_vertical_layers, plotting_parcels_t0, plotting_parcels_tracks_on_map, plotting_3Dparcels_tracks, maps_limits, noleap, limit_domain):
 
     create_directory(path_output)
 
@@ -1006,14 +1122,14 @@ def main_process(path, paso, comm, size, rank, resolution, numPdX, numPdY, dtime
     folder=year+month+day+hour+minn+"00"
     create_directory(path_output+folder)
     fecha= year+"-"+month+"-"+day+" "+hour+":"+minn+":"+"00"
-    lista_partposi, listdates=generate_file(paso, dtime, totaltime, fecha, path, key_gz)
-
+    lista_partposi, listdates=generate_file(paso, dtime, totaltime, fecha, path, key_gz, noleap)
+  
     if rank==0:
-       if (len(lista_partposi)-2)%size!=0:
-           print("TROVA ERROR: The number of processors must exactly divide the number of partposit files to process (totaltime/dtime).\n Based on your configuration file, the recommended number of processors is " + str(int(totaltime/dtime))) 
-           raise SystemExit("Bye :)")
+      if (len(lista_partposi)-2)%size!=0:
+          print("TROVA ERROR: The number of processors must exactly divide the number of partposit files to process (totaltime/dtime).\n Based on your configuration file, the recommended number of processors is " + str(int(totaltime/dtime))) 
+          raise SystemExit("Bye :)")
     elif (len(lista_partposi)-2)%size!=0:
-       raise SystemExit()
+     raise SystemExit()
 
     for i in lista_partposi:
         my_file=Path(i)
@@ -1023,35 +1139,36 @@ def main_process(path, paso, comm, size, rank, resolution, numPdX, numPdY, dtime
             raise SystemExit("Bye :)")
 
     if paso==1:
-        matrix_result, id_part, q_ini, partpos, lat_masked, lon_masked, mascara =_forward_dq(lista_partposi, file_mask, name_mascara,name_variable_lon, name_variable_lat,lat, lon,rank,size,comm, type_file,x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, model, value_mask, key_gz, path_output,use_vertical_layers, vertical_layers,filter_parcels_height,filter_vertical_layers)
+        matrix_result, id_part, q_ini, partpos, lat_masked, lon_masked, mascara =_forward_dq(lista_partposi, file_mask, name_mascara,name_variable_lon, name_variable_lat,lat, lon,rank,size,comm, type_file,x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, model, value_mask, key_gz, path_output,use_vertical_layers, vertical_layers,filter_parcels_height,filter_vertical_layers, limit_domain)
         matrix_save=np.empty((matrix_result.shape[0],matrix_result.shape[1],6))
         matrix_save[:,:,:-2]=matrix_result
         matrix_save[:,:,-2]=id_part
         matrix_save[:,:,-1]=q_ini
 
-
-        if rank==0:
+        if rank == 0:
             if save_position_dqdt:
-               write_nc(listdates[2:], matrix_save, "dqdt", filename=path_output+folder+"/"+folder+"_dqdt_forw")
+                ordinal_dates_dqdt = list(map(lambda date: convert_date_to_ordinal(*decompose_date(date)), listdates[2:]))
+                write_nc(ordinal_dates_dqdt, matrix_save, "dqdt", filename=path_output+folder+"/"+folder+"_dqdt_forw")
             if  save_position_part:
-                 write_nc(listdates, partpos, "partpos", filename=path_output+folder+"/"+folder+"_parposit_forw")
+                ordinal_dates_part = list(map(lambda date: convert_date_to_ordinal(*decompose_date(date)), listdates))
+                write_nc(ordinal_dates_part, partpos, "partpos", filename=path_output+folder+"/"+folder+"_parposit_forw")
 
-    if paso ==-1:
-        matrix_result, id_part, matrix_result_por,q_ini,partpos, lat_masked, lon_masked, mascara =_backward_dq(lista_partposi, file_mask, name_mascara,name_variable_lon, name_variable_lat,lat, lon,rank,size,comm, type_file, x_left_lower_corner, y_left_lower_corner, x_right_upper_corner, y_right_upper_corner, model, method,threshold,filter_value, value_mask, key_gz, path_output,use_vertical_layers, vertical_layers,filter_parcels_height,filter_vertical_layers)
+    if paso == -1:
+        matrix_result, id_part, matrix_result_por,q_ini,partpos, lat_masked, lon_masked, mascara =_backward_dq(lista_partposi, file_mask, name_mascara,name_variable_lon, name_variable_lat,lat, lon,rank,size,comm, type_file, x_left_lower_corner, y_left_lower_corner, x_right_upper_corner, y_right_upper_corner, model, method,threshold,filter_value, value_mask, key_gz, path_output,use_vertical_layers, vertical_layers,filter_parcels_height,filter_vertical_layers, limit_domain)
 
         matrix_save=np.empty((matrix_result.shape[0],matrix_result.shape[1],6))
         matrix_save[:,:,:-2]=matrix_result
         matrix_save[:,:,-2]=id_part
         matrix_save[:,:,-1]=q_ini
-
+         
         if rank==0:
-
             if save_position_dqdt:
-               write_nc(listdates[1:-1], matrix_save, "dqdt", filename=path_output+folder+"/"+folder+"_dqdt_back")
-            if  save_position_part:
-
-               write_nc(listdates, partpos, "partpos",filename=path_output+folder+"/"+folder+"_parposit_back")
-
+               ordinal_dates_dqdt = list(map(lambda date: convert_date_to_ordinal(*decompose_date(date)), listdates[1:-1]))
+               write_nc(ordinal_dates_dqdt, matrix_save, "dqdt", filename=path_output+folder+"/"+folder+"_dqdt_back")
+            if save_position_part:
+               ordinal_dates_part = list(map(lambda date: convert_date_to_ordinal(*decompose_date(date)), listdates))
+               write_nc(ordinal_dates_part, partpos, "partpos",filename=path_output+folder+"/"+folder+"_parposit_back")
+               
     if rank==0:
         cant_plazo=totaltime/dtime
         ndf=np.arange(1,len(t),1)
@@ -1215,7 +1332,9 @@ def TROVA_main(input_file):
     plotting_parcels_t0 = check_paths(content,"plotting_parcels_t0")
     plotting_parcels_tracks_on_map = check_paths(content,"plotting_parcels_tracks_on_map")
     maps_limits = check_paths(content,"maps_limits")
-    plotting_3Dparcels_tracks = check_paths(content,"plotting_3Dparcels_tracks")
+    plotting_3Dparcels_tracks = check_paths(content,"plotting_3Dparcels_tracks")    
+    noleap =  check_paths(content,"noleap")
+    limit_domain =  check_paths(content,"limit_domain")
 
     save_position_part = str2boolean(save_position_part)
     use_vertical_layers = str2boolean(use_vertical_layers)
@@ -1226,11 +1345,19 @@ def TROVA_main(input_file):
     plotting_parcels_t0 = str2boolean(plotting_parcels_t0)
     plotting_parcels_tracks_on_map = str2boolean(plotting_parcels_tracks_on_map)
     plotting_3Dparcels_tracks =  str2boolean(plotting_3Dparcels_tracks)
+    
+    noleap = str2boolean(noleap)
+    limit_domain = str2boolean(limit_domain)
 
     if filter_parcels_dq:
        filter_value=1
     else:
        filter_value=0
+       
+    if limit_domain:
+        limit_domain = 1
+    else:
+        limit_domain = 0
 
     if mode=="backward":
        paso=-1
@@ -1252,9 +1379,19 @@ def TROVA_main(input_file):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-
-    list_year, list_month, list_day, list_hour, list_min=generate_fecha_simulation(ndias, year, month, day, hour, minn )
-
+    list_year, list_month, list_day, list_hour, list_min=generate_fecha_simulation(ndias, year, month, day, hour, minn)
+    
+    if noleap:
+        ind=[]
+        for i in range(len(list_month)):
+            if list_month[i]=="02" and list_day[i]=="29":
+                ind.append(int(i))
+        list_year = np.delete(list_year, ind)
+        list_month = np.delete(list_month, ind)
+        list_day = np.delete(list_day, ind)
+        list_hour = np.delete(list_hour, ind)
+        list_min = np.delete(list_min, ind)
+    
     to_check_params(paso,type_file,numPdX , numPdY, method, resolution, dtime,file_mask)
 
     for year, month, day, hour, minn in zip(list_year, list_month, list_day, list_hour, list_min):
@@ -1267,7 +1404,7 @@ def TROVA_main(input_file):
                 print (' *****************************************************************************************')
                 print (" *                    EPhysLab (Environmental Physics Laboratory)                        *")
                 print (" *                        TRansport Of water VApor (TROVA)                               *")
-                print (" *                             Version " +str(get_currentversion())+" ("+ str(get_lastupdate())+")                                  *")
+                print (" *                             Version " +str(get_currentversion())+" ("+ str(get_lastupdate())+")                                *")
                 TROVA_LOGO()
                 print (" *                            Edificio Campus da Auga                                    *")
                 print (" *                               University of Vigo                                      *")
@@ -1305,7 +1442,7 @@ def TROVA_main(input_file):
 
             start_time = time()
             main_process(path,paso, comm, size, rank, resolution, numPdX, numPdY, dtime,totaltime,
-               year, month, day, hour, minn,start_time, path_output,file_mask,name_mascara,name_variable_lon, name_variable_lat,x_lower_left,y_lower_left, type_file,masa,numP,x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, model, method,threshold, filter_value,output_txt,output_npy,output_nc, value_mask, key_gz, save_position_part,use_vertical_layers, vertical_layers,save_position_dqdt, filter_parcels_height,filter_vertical_layers, plotting_parcels_t0, plotting_parcels_tracks_on_map, plotting_3Dparcels_tracks, maps_limits)
+               year, month, day, hour, minn,start_time, path_output,file_mask,name_mascara,name_variable_lon, name_variable_lat,x_lower_left,y_lower_left, type_file,masa,numP,x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, model, method,threshold, filter_value,output_txt,output_npy,output_nc, value_mask, key_gz, save_position_part,use_vertical_layers, vertical_layers,save_position_dqdt, filter_parcels_height,filter_vertical_layers, plotting_parcels_t0, plotting_parcels_tracks_on_map, plotting_3Dparcels_tracks, maps_limits, noleap, limit_domain)
             elapsed_time = time() - start_time
             if rank==0:
                 print ('                                                                                          ')
