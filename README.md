@@ -268,6 +268,13 @@ maps_limits = [0, -110, 75, 15, 0, 5, 25]
 
 #Plotting 3D parcels trajectories [True /  False]
 plotting_3Dparcels_tracks=False
+
+#Calendar leap/noleap ["True" / "False"] [only when certain simulations do not use leap calendar] [str]
+noleap = False
+
+#Parameter to limit the particles to the domain limits. Consider only in regional models ["True" / "False"]  [str]
+c = False
+
 ```
 ### Input data
 
@@ -350,6 +357,17 @@ The following Figure presents the moisture sink pattern associated with the Medi
 
 This code is not bug-free. Please report any bugs through 'Issues': https://github.com/tramo-ephyslab/TROVA/issues
 
+# New updates
+
+- Optimizations in certain Fortran and Python functions for greater computational efficiency. 
+
+- Including the option to consider simulations with a leap or non-leap calendar. 
+
+- Update in the NetCDF creates a function where the part post information is saved.
+
+- Only particles with a regional domain should be limited in a global domain such as FLEXPART, use the limit_domain = False option.
+
+
 ## Contact and support
 
 José Carlos Fernández Alvarez (jose.carlos.fernandez.alvarez@uvigo.es) and Albenis Pérez Alarcón (albenis.perez.alarcon@uvigo.es)
@@ -357,7 +375,7 @@ José Carlos Fernández Alvarez (jose.carlos.fernandez.alvarez@uvigo.es) and Alb
 # LICENSE 
 
 
-Copyright 2023 Fernández-Alvarez et al. (2022)
+Copyright 2024 Fernández-Alvarez et al. (2022)
 
 This software is published under the GPLv3 license. This means:
 
@@ -370,6 +388,11 @@ This software is published under the GPLv3 license. This means:
 - Any modifications of this code base MUST be distributed with the same license, GPLv3.
 - This software is provided without warranty.
 - The software author or license can not be held liable for any damages inflicted by the software.
+
+
+**IMPORTANT:** If you use the software in any research please reference it as indicated below:
+
+*Fernández-Alvarez, J. C., Pérez-Alarcón, A., Nieto, R., & Gimeno, L. (2022). TROVA: TRansport of water VApor. SoftwareX, 20, 101228*
 
 # References
 [1] Stohl A, James PA. A Lagrangian analysis of the atmospheric branch of the global water cycle: Part II: Earth’s river catchments ocean basins, and moisture transports between them. J. Hydrometeorol. 2005; 6:961–984. https://doi.org/10.1175/JHM470.1.
