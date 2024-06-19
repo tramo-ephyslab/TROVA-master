@@ -267,7 +267,7 @@ plotting_parcels_tracks_on_map = False
 maps_limits = [0, -110, 75, 15, 0, 5, 25]
 
 #Plotting 3D parcels trajectories [True /  False]
-plotting_3Dparcels_tracks=False
+plotting_3Dparcels_tracks = False
 
 #Calendar leap/noleap ["True" / "False"] [only when certain simulations do not use leap calendar] [str]
 noleap = False
