@@ -273,7 +273,7 @@ plotting_3Dparcels_tracks = False
 noleap = False
 
 #Parameter to limit the particles to the domain limits. Consider only in regional models ["True" / "False"]  [str]
-c = False
+limit_domain = False
 
 ```
 ### Input data
