@@ -139,7 +139,7 @@ mass = 5.148e+18
 #Total number of atmospheric parcels in model simulation [int]
 numP = 1997651
 
-#Type of file: Set 1 for FELXPART-WRF and FLEXPART newler than version 9. Set 2 for FLEXPART older than version 9.  [int]
+#Type of file: Set 1 for FELXPART-WRF. Set 2 for FLEXPART older or newler than version 9.  [int]
 type_file = 2
 
 #--------------------------------------------------------
