@@ -61,8 +61,6 @@ from .functions import search_row as sRow
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 print = functools.partial(print, flush=True)
 
-#--------------------------------------------------------------------
-#New functions python
 def Kdif_python(matrix1, matrix2, paso):
     """
     Computes the difference between two matrices based on a given step.
@@ -70,7 +68,7 @@ def Kdif_python(matrix1, matrix2, paso):
     Parameters:
     matrix1 (numpy.ndarray): The first input matrix.
     matrix2 (numpy.ndarray): The second input matrix.
-    paso (float): The step value, can be either -1.0 or 1.0.
+    paso (float): The step value, can be either -1 (backward) or 1 (forward).
 
     Returns:
     numpy.ndarray: The output matrix with computed differences and selected values from the input matrices.
