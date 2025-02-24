@@ -1,7 +1,30 @@
 #!/usr/bin/env python
+
+# -*- coding: utf-8 -*-
+#
+# MAIN SCRIPT OF TROVA
+# 
+# This file is part of TROVA, 
+# originally created by José Carlos Fernández Alvarez, Albenis Pérez Alarcón, Raquel Nieto and Luis Gimeno
+# at the EPhysLab, University of Vigo
+# 
+# https://github.com/tramo-ephyslab/TROVA-master/
+# 
+# TROVA is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation v3.
+#
+# TROVA is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with TROVA. If not, see <http://www.gnu.org/licenses/>.
+#
+
 import numpy as np
 import sys
-from mpi4py import MPI
 from time import time
 import time as pytime
 import struct
@@ -21,7 +44,9 @@ import matplotlib.pylab as plt
 from mpl_toolkits.mplot3d import Axes3D
 import math
 import importlib.machinery
+from mpi4py import MPI
 from .functions import k_dq as K_dq
+#from .tensor_operations import k_dq as K_dq
 from .functions import k_dq_layers as K_dq_layers
 from .functions import read_binary_file as RBF
 from .functions import len_file as lf
@@ -30,12 +55,26 @@ from .functions import k_dq_por as K_dq_POR
 from .functions import filter_part as Filter_Part
 from .functions import filter_part2 as Filter_Part2
 from .functions import filter_part_by_height as Filter_by_Height
+from .functions import determined_id as D_id
+from .functions import search_row as sRow
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 print = functools.partial(print, flush=True)
 
+#--------------------------------------------------------------------
+#New functions python
 def Kdif_python(matrix1, matrix2, paso):
+    """
+    Computes the difference between two matrices based on a given step.
 
+    Parameters:
+    matrix1 (numpy.ndarray): The first input matrix.
+    matrix2 (numpy.ndarray): The second input matrix.
+    paso (float): The step value, can be either -1.0 or 1.0.
+
+    Returns:
+    numpy.ndarray: The output matrix with computed differences and selected values from the input matrices.
+    """
     dx, dy = matrix1.shape
     output = np.full((dx, dy - 1), -999.9, dtype=matrix1.dtype)
     
