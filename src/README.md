@@ -322,27 +322,25 @@ srun -n $SLURM_NTASKS --mpi=pmi2 python  run_TROVA.py input_file_path >> py_${SL
 Using the data corresponding to the outputs of FLEXPART-WRF forced with ERA5  provided in the following repositories [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14886887.svg)](https://zenodo.org/records/14886887)
 and [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14939160.svg)]( https://zenodo.org/records/14939160), the results shown below for October 17, 2014 (moisture source, using as CAN target region), and October 6, 2014 (moisture sink, using as MED target region), can be reproduced. Configuration files and masks are available at https://github.com/tramo-ephyslab/TROVA-master/tree/main/Masks and https://github.com/tramo-ephyslab/TROVA-master/tree/main/Inputs. In these cases, the methodology of Stohl and James (2005) is used. Check that once TROVA is installed you can reproduce these results.
 
-**1- Moisture source pattern** 
+**1- Moisture source pattern (17/10/2014)** 
 
 <p align="center" width="100%">
  <img src="https://github.com/tramo-ephyslab/TROVA-master/blob/develop/Figures/moisture_source_20141017000000.png" width=50% height=50%>
  </p>
 
-**2- Moisture source pattern**
+**2- Moisture sink pattern (06/10/2014)**
 
  <p align="center" width="100%">
  <img src="https://github.com/tramo-ephyslab/TROVA-master/blob/develop/Figures/moisture_sink_20141006000000.png" width=50% height=50%>
  </p>
 
-**3- Water vapor residence time**
+**3- Water vapor residence time (17/10/2014)**
 
 In addition, we show the values ​​of the water vapor residence time applying the methodology of Läderach and Sodemann (2016) for October 17, 2014.
 
 <p align="center" width="100%">
  <img src="https://github.com/tramo-ephyslab/TROVA-master/blob/develop/Figures/WVRT_plot_20141017000000.png" width=50% height=50%>
  </p>
-
-
 
 ## Climatological analysis
 
