@@ -46,7 +46,7 @@ implementation using the MPI library to reduce TROVA's processing time.
 3- This new version includes the analysis of moisture sources and sinks by vertical layers.
 
 4- This version allows the calculation of the residence time of water vapor in the 
-atmosphere for particles in a target region.
+atmosphere for particles in a target region applying the methodology of Läderach and Sodemann (2016).
 
 5- This version has functions that allow the representation of moisture source and sink patterns and the representation in a 2D graph of the residence time values of water vapor in the atmosphere for particles in a target region.
 
@@ -319,18 +319,29 @@ srun -n $SLURM_NTASKS --mpi=pmi2 python  run_TROVA.py input_file_path >> py_${SL
 
 ## Illustrative examples for a specific day
 
-Using the data corresponding to the outputs of FLEXPART-WRF forced with ERA5 
-and the TROVA configuration file provided in the following repository [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14886887.svg)](https://zenodo.org/records/14886887)
+Using the data corresponding to the outputs of FLEXPART-WRF forced with ERA5  provided in the following repositories [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14886887.svg)](https://zenodo.org/records/14886887)
 and [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14939160.svg)]( https://zenodo.org/records/14939160), the results shown below for October 17, 2014 (moisture source, using as CAN target region), and October 6, 2014 (moisture sink, using as MED target region), can be reproduced. Configuration files and masks are available at https://github.com/tramo-ephyslab/TROVA-master/tree/main/Masks and https://github.com/tramo-ephyslab/TROVA-master/tree/main/Inputs. In these cases, the methodology of Stohl and James (2005) is used. Check that once TROVA is installed you can reproduce these results.
+
+**1- Moisture source pattern** 
 
 <p align="center" width="100%">
  <img src="https://github.com/tramo-ephyslab/TROVA-master/blob/develop/Figures/moisture_source_20141017000000.png" width=50% height=50%>
  </p>
 
+**2- Moisture source pattern**
 
  <p align="center" width="100%">
  <img src="https://github.com/tramo-ephyslab/TROVA-master/blob/develop/Figures/moisture_sink_20141006000000.png" width=50% height=50%>
  </p>
+
+**3- Water vapor residence time**
+
+In addition, we show the values ​​of the water vapor residence time applying the methodology of Läderach and Sodemann (2016) for October 17, 2014.
+
+<p align="center" width="100%">
+ <img src="https://github.com/tramo-ephyslab/TROVA-master/blob/develop/Figures/WVRT_plot_20141017000000.png" width=50% height=50%>
+ </p>
+
 
 
 ## Climatological analysis
@@ -377,6 +388,7 @@ This software is published under the GPLv3 license. This means:
 - The software author or license can not be held liable for any damages inflicted by the software.
 
 # References
+
 [1] Stohl A, James PA. A Lagrangian analysis of the atmospheric branch of the global water cycle: Part II: Earth’s river catchments ocean basins, and moisture transports between them. J. Hydrometeorol. 2005; 6:961–984. https://doi.org/10.1175/JHM470.1.
 
 [2] Sodemann H, Schwierz C, Wernli H. Interannual variability of Greenland winter precipitation sources: Lagrangian moisture diagnostic and North Atlantic Oscillation influence. J. Geophys. Res.-Atmos. 2008; 113:D03107. https://doi.org/10.1029/2007JD008503. 
