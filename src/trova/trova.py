@@ -48,7 +48,6 @@ import math
 import importlib.machinery
 from mpi4py import MPI
 from .functions import k_dq as K_dq
-#from .tensor_operations import k_dq as K_dq
 from .functions import k_dq_layers as K_dq_layers
 from .functions import read_binary_file as RBF
 from .functions import len_file as lf
@@ -59,7 +58,6 @@ from .functions import filter_part2 as Filter_Part2
 from .functions import filter_part_by_height as Filter_by_Height
 from .functions import determined_id as D_id
 from .functions import search_row as sRow
-#from .functions import kdif as kdif
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 print = functools.partial(print, flush=True)
 
@@ -1339,7 +1337,7 @@ def remove_rows_with_value(tensor, tensor_por, idPart, qIni, ref_index=0, value=
 
     return filtered_tensor, filtered_tensor_por, filtered_idPart, filtered_qIni
 
-def plot_residence_time(residence_time_particles, residence_time_mean, output_dir, date, rank):
+def plot_residence_time(residence_time_particles, residence_time_mean, output_dir, date):
     """
     Plot residence time for all particles and display the mean value in the title.
 
@@ -1363,12 +1361,13 @@ def plot_residence_time(residence_time_particles, residence_time_mean, output_di
     plot_file = f"{output_dir}WVRT_plot_{date}.png"
     plt.savefig(plot_file, bbox_inches='tight', dpi=300)
     plt.close()
+    rank = MPI.COMM_WORLD.Get_rank()
     if rank == 0:
         print("--------------------------------------------------------------------")
         print(f"Plot for the residence time for all particles saved to {plot_file}")
         print("--------------------------------------------------------------------")
    
-def compute_residence_time_and_save(dqdt, output_dir, date, dtime, totaltime, folder, rank):
+def compute_residence_time_and_save(dqdt, output_dir, date, dtime, totaltime, folder):
     """
     Compute water vapor residence time from a dq/dt tensor and save results to a NetCDF file.
     
@@ -1464,7 +1463,7 @@ def compute_residence_time_and_save(dqdt, output_dir, date, dtime, totaltime, fo
     # Close datasets
     ds_out.close()
 
-    plot_residence_time(np.abs(residence_time_particles), np.abs(residence_time_mean), output_dir, str(int(date[0])), rank)
+    plot_residence_time(np.abs(residence_time_particles), np.abs(residence_time_mean), output_dir, str(int(date[0])))
 
     return residence_time_mean
 
@@ -1947,7 +1946,7 @@ def _vector_wvrt(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
         matrix_result[i,:,3]=matrix[:,3]
 
     submatrix_wvrt = matrix_result[:, matrix_result[0, :, 0] != -999.9, :]
-    wvrt_mean = compute_residence_time_and_save(submatrix_wvrt[:, :, 2], path_output+folder+"/", dates, dtime, totaltime, folder, rank)
+    wvrt_mean = compute_residence_time_and_save(submatrix_wvrt[:, :, 2], path_output+folder+"/", dates, dtime, totaltime, folder)
 
     if rank==0:
         print("")
