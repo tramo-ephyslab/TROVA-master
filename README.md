@@ -61,11 +61,16 @@ This section describes the prerequisites required to run TROVA, as well as the s
 ### Prerequisites
 
 To run TROVA, you need
-* [![Python3](https://www.python.org/)](https://www.python.org/) (> version 3.8)
-* [![Git](https://git-scm.com/)](https://git-scm.com/)
-* [![Anaconda3](https://www.anaconda.com/)](https://www.anaconda.com/)
-* [![Linux](https://www.linux.org/)](https://www.linux.org/)
 
+- [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/release/python-380/)
+
+- [![Git](https://img.shields.io/badge/Git-blue.svg)](https://git-scm.com/)
+
+- [![Anaconda 3](https://img.shields.io/badge/Anaconda-3-green.svg)](https://www.anaconda.com/)
+
+- [![Linux](https://img.shields.io/badge/Linux-red.svg)](https://www.linux.org/)
+
+- [![Fortran](https://img.shields.io/badge/Fortran-yellow.svg)](https://fortran-lang.org/)
 
 1- Create a python environment with conda, for example
 
