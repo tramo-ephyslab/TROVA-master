@@ -1,3 +1,17 @@
+!> Computes the sum of tensor values within specified longitude and latitude bounds.
+!!
+!! This subroutine iterates over the tensor and sums the values in the third dimension
+!! for each grid cell defined by the longitude and latitude arrays.
+!!
+!! @param result (real(8), intent(out)) The output array containing the summed values.
+!! @param tensor (real(8), intent(in)) The input tensor containing the data to be summed.
+!! @param lon (real(8), intent(in)) The array of longitude values defining the grid cells.
+!! @param lat (real(8), intent(in)) The array of latitude values defining the grid cells.
+!! @param numPdY (integer, intent(in)) The number of grid points in the Y direction.
+!! @param numPdX (integer, intent(in)) The number of grid points in the X direction.
+!! @param nlen (integer, intent(in)) The length of the first dimension of the tensor.
+!! @param npart (integer, intent(in)) The length of the second dimension of the tensor.
+
 subroutine K_dq(result, tensor, lon, lat, numPdY, numPdX, nlen, npart)
     implicit none
     integer, intent(in) :: numPdY, numPdX, nlen, npart
@@ -25,6 +39,22 @@ subroutine K_dq(result, tensor, lon, lat, numPdY, numPdX, nlen, npart)
         enddo
     enddo
 end subroutine
+
+!> Computes the sum of tensor values within specified longitude, latitude, and vertical layer bounds.
+!!
+!! This subroutine iterates over the tensor and sums the values in the third dimension
+!! for each grid cell defined by the longitude and latitude arrays, and within the specified vertical layer bounds.
+!!
+!! @param result (real(8), intent(out)) The output array containing the summed values.
+!! @param tensor (real(8), intent(in)) The input tensor containing the data to be summed.
+!! @param z0 (real(8), intent(in)) The lower bound of the vertical layer.
+!! @param z1 (real(8), intent(in)) The upper bound of the vertical layer.
+!! @param lon (real(8), intent(in)) The array of longitude values defining the grid cells.
+!! @param lat (real(8), intent(in)) The array of latitude values defining the grid cells.
+!! @param numPdY (integer, intent(in)) The number of grid points in the Y direction.
+!! @param numPdX (integer, intent(in)) The number of grid points in the X direction.
+!! @param nlen (integer, intent(in)) The length of the first dimension of the tensor.
+!! @param npart (integer, intent(in)) The length of the second dimension of the tensor.
 
 subroutine K_dq_layers(result, tensor, z0, z1, lon, lat, numPdY, numPdX, nlen, npart)
     implicit none
@@ -57,6 +87,20 @@ subroutine K_dq_layers(result, tensor, z0, z1, lon, lat, numPdY, numPdX, nlen, n
     enddo
     
 end subroutine
+
+!> Computes the average of tensor values within specified longitude and latitude bounds.
+!!
+!! This subroutine iterates over the tensor and computes the average of the values in the third dimension
+!! for each grid cell defined by the longitude and latitude arrays.
+!!
+!! @param result (real(8), intent(out)) The output array containing the averaged values.
+!! @param tensor (real(8), intent(in)) The input tensor containing the data to be averaged.
+!! @param lon (real(8), intent(in)) The array of longitude values defining the grid cells.
+!! @param lat (real(8), intent(in)) The array of latitude values defining the grid cells.
+!! @param numPdY (integer, intent(in)) The number of grid points in the Y direction.
+!! @param numPdX (integer, intent(in)) The number of grid points in the X direction.
+!! @param nlen (integer, intent(in)) The length of the first dimension of the tensor.
+!! @param npart (integer, intent(in)) The length of the second dimension of the tensor.
 
 subroutine K_dq_por(result, tensor, lon, lat, numPdY, numPdX, nlen, npart)
 
@@ -100,6 +144,20 @@ subroutine K_dq_por(result, tensor, lon, lat, numPdY, numPdX, nlen, npart)
     enddo
 
 end subroutine
+
+!> Reads a binary file and extracts relevant data within specified domain limits.
+!!
+!! This subroutine reads a binary file and extracts relevant data, storing it in the output array.
+!! If domain limits are specified, only data within those limits is included in the output.
+!!
+!! @param output_ (real(8), intent(out)) The output array containing the extracted data.
+!! @param filename (character(500), intent(in)) The name of the binary file to read.
+!! @param nparts (integer, intent(in)) The number of parts in the binary file.
+!! @param x_l (real, intent(in)) The lower X-coordinate of the domain.
+!! @param y_l (real, intent(in)) The lower Y-coordinate of the domain.
+!! @param x_r (real, intent(in)) The upper X-coordinate of the domain.
+!! @param y_r (real, intent(in)) The upper Y-coordinate of the domain.
+!! @param limit_domian (integer, intent(in)) Whether to limit the domain (1 for yes, 0 for no).
 
 subroutine read_binary_file(output_,filename, nparts,x_l,y_l, x_r,y_r, limit_domian)
 
@@ -172,6 +230,13 @@ subroutine read_binary_file(output_,filename, nparts,x_l,y_l, x_r,y_r, limit_dom
 return
 end subroutine read_binary_file
 
+!> Determines the size of a file in bytes.
+!!
+!! This subroutine determines the size of a specified file in bytes and returns the size.
+!!
+!! @param bytes (integer, intent(out)) The size of the file in bytes.
+!! @param filename (character(500), intent(in)) The name of the file to check.
+
 subroutine len_file(bytes, filename)
 
     character(500) :: filename
@@ -183,6 +248,18 @@ subroutine len_file(bytes, filename)
     bytes=x
 end subroutine
 
+!> Computes the sum of tensor values within specified thresholds.
+!!
+!! This subroutine iterates over the tensor and computes the sum of the values in the third dimension
+!! for each grid cell defined by the matrix and matrix_ind arrays, applying the specified threshold.
+!!
+!! @param result (real(8), intent(out)) The output array containing the summed values.
+!! @param matrix (real(8), intent(in)) The input tensor containing the data to be summed.
+!! @param matrix_ind (real(8), intent(in)) The input tensor containing the indicator values.
+!! @param threshold (real) The threshold value for filtering.
+!! @param npart (integer) The number of parts in the tensor.
+!! @param ntime (integer) The number of time steps in the tensor.
+
 subroutine K_dq_So(result,matrix,matrix_ind,threshold,npart, ntime)
 
     real *8, intent(in) :: matrix(npart, ntime)
@@ -192,12 +269,6 @@ subroutine K_dq_So(result,matrix,matrix_ind,threshold,npart, ntime)
     integer :: i,j,k,npart
     real threshold 
     
-!     do i=1,npart
-!         do j=1,ntime
-!             result(i,j)=0.0
-!         enddo
-!     enddo
-!     
     result = 0.0
       
     do i=1,npart
@@ -244,6 +315,19 @@ subroutine K_dq_So(result,matrix,matrix_ind,threshold,npart, ntime)
     enddo
 end subroutine
 
+!> Filters particles based on a specified threshold.
+!!
+!! This subroutine filters particles based on a specified threshold and step value (paso).
+!! It updates the output array with the filtered particles and counts the number of filtered particles.
+!!
+!! @param output (real, intent(out)) The output array containing the filtered particles.
+!! @param count_part (integer, intent(out)) The count of filtered particles.
+!! @param matrix (real, intent(in)) The input matrix containing particle data.
+!! @param matrix_ref (real, intent(in)) The reference matrix for filtering.
+!! @param paso (integer, intent(in)) The step value indicating the direction of the simulation (-1 for backward, 1 for forward).
+!! @param threshold (real, intent(in)) The threshold value for filtering.
+!! @param numP (integer, intent(in)) The number of particles.
+
 subroutine filter_part(output,count_part,matrix,matrix_ref, paso, threshold, numP)
   
     real, intent(in) :: matrix(numP,4)
@@ -274,6 +358,19 @@ subroutine filter_part(output,count_part,matrix,matrix_ref, paso, threshold, num
     endif
 end subroutine
 
+!> Filters particles based on a specified threshold.
+!!
+!! This subroutine filters particles based on a specified threshold and step value (paso).
+!! It updates the output array with the filtered particles and counts the number of filtered particles.
+!!
+!! @param output (real, intent(out)) The output array containing the filtered particles.
+!! @param count_part (integer, intent(out)) The count of filtered particles.
+!! @param matrix (real, intent(in)) The input matrix containing particle data.
+!! @param matrix_ref (real, intent(in)) The reference matrix for filtering.
+!! @param paso (integer, intent(in)) The step value indicating the direction of the simulation (-1 for backward, 1 for forward).
+!! @param threshold (real, intent(in)) The threshold value for filtering.
+!! @param numP (integer, intent(in)) The number of particles.
+
 subroutine filter_part2(output,count_part,matrix,matrix_ref, paso, threshold, numP)
   
     real, intent(in) :: matrix(numP,11)
@@ -303,6 +400,20 @@ subroutine filter_part2(output,count_part,matrix,matrix_ref, paso, threshold, nu
         enddo
     endif
 end subroutine
+
+!> Filters particles based on height within specified layers.
+!!
+!! This subroutine filters particles based on a specified height range (lowerlayer to upperlayer) and step value (paso).
+!! It updates the output array with the filtered particles and counts the number of filtered particles.
+!!
+!! @param output (real, intent(out)) The output array containing the filtered particles.
+!! @param count_part (integer, intent(out)) The count of filtered particles.
+!! @param matrix (real, intent(in)) The input matrix containing particle data.
+!! @param matrix_ref (real, intent(in)) The reference matrix for filtering.
+!! @param paso (integer, intent(in)) The step value indicating the direction of the simulation (-1 for backward, 1 for forward).
+!! @param lowerlayer (real, intent(in)) The lower bound of the height range for filtering.
+!! @param upperlayer (real, intent(in)) The upper bound of the height range for filtering.
+!! @param numP (integer, intent(in)) The number of particles.
 
 subroutine filter_part_by_height(output,count_part,matrix,matrix_ref, paso, lowerlayer, upperlayer, numP)
   
@@ -336,6 +447,17 @@ subroutine filter_part_by_height(output,count_part,matrix,matrix_ref, paso, lowe
     endif
 end subroutine
 
+!> Searches for rows in the matrix that match the values in the list.
+!!
+!! This subroutine searches for rows in the matrix that match the values in the list.
+!! It updates the output array with the matching rows.
+!!
+!! @param output (real, intent(out)) The output array containing the matching rows.
+!! @param matrix (real, intent(in)) The input matrix containing data.
+!! @param lista (real, intent(in)) The list of values to search for.
+!! @param len_lista (integer, intent(in)) The length of the list.
+!! @param numP (integer, intent(in)) The number of rows in the matrix.
+
 subroutine search_row(output,matrix,lista,len_lista,numP)
    
     real, intent(in) :: matrix(numP,11)
@@ -353,8 +475,18 @@ subroutine search_row(output,matrix,lista,len_lista,numP)
            endif 
         enddo
     enddo
-    
+        
 end subroutine
+
+!> Determines the indices of elements in value_mascara that match value_mask.
+!!
+!! This subroutine searches through the value_mascara array and sets the corresponding
+!! indices in the vector array where the elements match the value_mask.
+!!
+!! @param vector (integer, intent(out)) The output array containing the indices of matching elements.
+!! @param value_mascara (integer, intent(in)) The input array to search through.
+!! @param value_mask (integer, intent(in)) The value to match in the value_mascara array.
+!! @param len_value_mascara (integer, intent(in)) The length of the value_mascara array.
 
 subroutine determined_id(vector, value_mascara,value_mask,len_value_mascara)
 
@@ -370,6 +502,18 @@ subroutine determined_id(vector, value_mascara,value_mask,len_value_mascara)
         endif
     enddo
 end subroutine
+
+!> Computes the difference between two matrices based on a specified step value (paso).
+!!
+!! This subroutine computes the difference between two matrices (matrix1 and matrix2) based on a specified step value (paso).
+!! It updates the output array with the computed differences.
+!!
+!! @param output (real(8), intent(out)) The output array containing the computed differences.
+!! @param matrix1 (real(8), intent(in)) The first input matrix.
+!! @param matrix2 (real(8), intent(in)) The second input matrix.
+!! @param paso (real, intent(in)) The step value indicating the direction of the simulation (-1 for backward, 1 for forward).
+!! @param dx (integer, intent(in)) The number of rows in the matrices.
+!! @param dy (integer, intent(in)) The number of columns in the matrices.
 
 subroutine Kdif(output, matrix1, matrix2, paso, dx, dy)
 

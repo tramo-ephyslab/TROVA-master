@@ -1,36 +1,57 @@
 # TROVA: TRansport Of water VApor
 
-TRansport Of water VApor (TROVA) is a software developed in Python and Fortran for the study of moisture sources and sinks. It has been developed within the LAGRIMA and SETESTRELO projects at the EPhysLab (Environmental Physics Laboratory) at the University of Vigo. **This is an update of the software presented by Fernández-Alvarez et al. (2022)**
-```
-# *****************************************************************************************
-# *                    EPhysLab (Environmental Physics Laboratory)                        *
-# *                        TRansport Of water VApor (TROVA)                               *
-# *                             version 1.1 (19-11-2023)                                  *
-# *                        _____ __    ____                                               *
-# *                          |  |  |  /    \ \        //\                                 *
-# *                          |  |__| /      \ \      //__\                                *
-# *                          |  |  \ \      /  \    //    \                               *
-# *                          |  |   \ \____/    \__//      \                              *
-# *                                                                                       *
-# *                            Edificio Campus da Auga                                    *
-# *                               University of Vigo                                      *
-# *                                ephyslab.uvigo.es                                      *
-# *  contact: jose.carlos.fernandez.alvarez@uvigo.es, albenis.perez.alarcon@uvigo.es      *
-# *****************************************************************************************
-#------------------------------------------------------------------------------------------
-```
+TTRansport Of water VApor (TROVAv1.1.1) is a software developed in Python and Fortran
+for the study of moisture sources and sinks. It has been developed within the LAGRIMA and 
+SETESTRELO projects at the EPhysLab (Environmental Physics Laboratory) at the University of Vigo. 
+Subsequently, its development and updating have continued within a collaboration between the University 
+of Vigo and the Galician Supercomputing Center. Many investigations use this software to obtain scientific results. 
+These can be consulted at the following web address: https://ephyslab.uvigo.es/en/staff/.
+**This is an update of the software presented by Fernández-Alvarez et al. (2022)**
 
-
+```
+#*****************************************************************************************
+#*                    EPhysLab (Environmental Physics Laboratory), Spain                 *
+#*                        Galician Supercomputing Center, Spain                          *
+#*                        TRansport Of water VApor (TROVA)                               *
+#*                             version 1.1.1 (15-02-2025)                                *
+#*                        _____ __    ____                                               *
+#*                          |  |  |  /    \ \        //\                                 *
+#*                          |  |__| /      \ \      //__\                                *
+#*                          |  |  \ \      /  \    //    \                               *
+#*                          |  |   \ \____/    \__//      \                              *
+#*                                                                                       *
+#*                       Edificio Campus da Auga/Edificio CESGA                          *
+#*                            University of Vigo/CESGA                                   *
+#*                          www.ephyslab.uvigo.es/www.cesga.es                           *
+#*      contact: jose.carlos.fernandez.alvarez@uvigo.es (jcfernandez@cesga.es),          * 
+#*                         albenis.perez.alarcon@uvigo.es                                *
+#*****************************************************************************************
+```
 
 # What is TROVA?
 
-TROVA allows the use of the FLEXible PARTicle global dispersion model and the FLEXPART-WRF regional model at different spatial resolutions. It also include the methodologies of Stohl and James (2005) and Sodemann et al. (2008). It contains two main modules:
+TROVA allows the use of the FLEXible PARTicle global dispersion model and the FLEXPART-WRF 
+regional model at different spatial resolutions. It also includes the methodologies 
+of Stohl and James (2005) and Sodemann et al. (2008). We herein refer to these methodologies
+as STHOL2005 and SOD2008 respectively. It contains two main modules:
 
-1- Developed in Python that is responsible for reading the files, configuring TROVA and generating the outputs of the moisture budget *(Evaporation (E)-Precipitation (P))* for the number of days selected in the simulations.
+1- Developed in Python, responsible for reading files, configuring TROVA, and generating 
+the outputs of the moisture balance (Evaporation (E)-Precipitation (P)) for the number 
+of days selected in the simulations.
 
-2- Developed in Fortran that is used in interface with Python so that the calculations of great computational demand are carried out in the shortest possible time. It also includes a parallel implementation using the MPI library to reduce TROVA processing time.
+2- Developed in Fortran, used in interface with Python to perform computationally 
+demanding calculations in the shortest possible time. It also includes a parallel 
+implementation using the MPI library to reduce TROVA's processing time.
 
 3- This new version includes the analysis of moisture sources and sinks by vertical layers.
+
+4- This version allows the calculation of the residence time of water vapor in the 
+atmosphere for particles in a target region.
+
+5- This version has functions that allow the representation of moisture source and sink patterns and the representation in a 2D graph of the residence time values of water vapor in the atmosphere for particles in a target region.
+
+For a more detailed understanding of TROVA you can review the official TROVA API documentation: https://trova-docs.readthedocs.io/en/latest/.
+
 
 # What do I need to get and run TROVA?
 
@@ -80,52 +101,63 @@ conda create -n py38 python=3.8
 
 To use TROVA you must modified the input file depending on the problem to be solved. This is an example that can be used as a test with the data presented below. A description of each parameter is shown below:
  ```
-#---------------------
-# Input data features
-#--------------------
-
+ #*****************************************************************************************
+#*                    EPhysLab (Environmental Physics Laboratory), Spain                 *
+#*                        Galician Supercomputing Center, Spain                          *
+#*                        TRansport Of water VApor (TROVA)                               *
+#*                             version 1.1.1 (15-02-2025)                                *
+#*                        _____ __    ____                                               *
+#*                          |  |  |  /    \ \        //\                                 *
+#*                          |  |__| /      \ \      //__\                                *
+#*                          |  |  \ \      /  \    //    \                               *
+#*                          |  |   \ \____/    \__//      \                              *
+#*                                                                                       *
+#*                       Edificio Campus da Auga/Edificio CESGA                          *
+#*                            University of Vigo/CESGA                                   *
+#*                          www.ephyslab.uvigo.es/www.cesga.es                           *
+#*      contact: jose.carlos.fernandez.alvarez@uvigo.es (jcfernandez@cesga.es),          * 
+#*                         albenis.perez.alarcon@uvigo.es                                *
+#*****************************************************************************************
+#------------------------------------------------------------------------------------------
 #Path to FLEXPART or FLEXPART-WRF partposit binary files [str]
-path_data = ""
+path_data = "/home/jose/Documentos/TROVArun/Data/"
 
 #Path for TROVA outputs [str]
-path_output = "/mnt/lustre/scratch/nlsas/home/uvi/fi/mst/JoseC/TROVA_NEW/output/"
+path_output = "output/"
 
-#Lagrangian tracking mode: ('backward' / 'forward') [str]
+#Lagrangian tracking mode: ('backward' / 'forward'/ 'wvrt' / 'partposit') [str]
+#backward: moisture sources, forward: moisture sinks, wvrt: water vapor residence time, partposit: particle variables over target region
 mode = "backward"
 
 #Atmospheric mass [float]
-mass = 5.148e+18
+mass = 1.165725e+18
 
 #Total number of atmospheric parcels in model simulation [int]
-numP = 1997651
+numP = 2045128
 
 #Type of file: Set 1 for FELXPART-WRF and FLEXPART newler than version 9. Set 2 for FLEXPART older than version 9.  [int]
-type_file = 2
-
-#--------------------------------------------------------
-# TROVA output domain configuration and simulation period
-#--------------------------------------------------------
+type_file = 1
 
 #Spatial resolution for TROVA outputs [float]
-resolution = 1 
+resolution = 0.25 
 
 #Number of point in x-direction for TROVA outputs [int]
-numPdX = 360
+numPdX = 600
 
 #Number of point in y-direction for TROVA outputs [int]
-numPdY = 180
+numPdY = 325
 
 #Lower longitude for TROVA output domain [float]
-x_lower_left = -180
+x_lower_left = -110
 
 #Lower latitude for TROVA output domain [float]
-y_lower_left = -90
+y_lower_left = -15
 
 #Time step for parcel tracking (minutes) [int]
 dtime = 360
 
 #Total time for parcel tracking (minutes) [int]
-totaltime = 14400
+totaltime = 1440
 
 #Start date for tracking [int]
 year = 2014
@@ -137,17 +169,13 @@ min = 00
 #Number of days to perform parcel tracking from start day [int]
 ndays = 1
 
-#------------------
-# Mask data
-#------------------
+#path to mask fil (netcdf)
+file_mask = "Masks/CAN.nc"
 
-#path to mask file (netcdf)
-file_mask = "/mnt/lustre/scratch/nlsas/home/uvi/fi/mst/JoseC/TROVA_NEW/Masks/CAN.nc"
-
-#Mask name variable in the mask file [str]
+#Mask name variable in the mask filee [str]
 maskname = "mask"     
 
-#Latitude variable name in the mask file [str]
+#Latitude variable name  in the mask file [str]
 maskvar_lat = "lat"
 
 #Longitude variable name in the mask file [str]
@@ -156,21 +184,17 @@ maskvar_lon = "lon"
 #Mask value for filterirng parcels [int]
 mask_value = 1
 
-#-----------------------------------
-#Configuration for particle tracking
-#-----------------------------------
-
 #Subdomain limits for regional models [float]
 #x_left_lower_corner: longitude min, y_left_lower_corner: latitude min, x_right_upper_corner: longitude max, y_right_upper_corner: latitude max
-x_left_lower_corner = -180.0
-y_left_lower_corner = -90.0
-x_right_upper_corner = 180
-y_right_upper_corner = 90.0
+x_left_lower_corner = -100.0
+y_left_lower_corner = -15.0
+x_right_upper_corner = 39.86
+y_right_upper_corner = 57.0
 
 #model type: ['FLEXPART' / 'FLEXPART-WRF'] [str]
-model = "FLEXPART"
+model = "FLEXPART-WRF"
 
-#Set method = 1 for Stohl and James (2005). Set method = 2 for Sodemann et al. (2008) [int]
+#Set method = 1 for Stohl and James (2004,2005). Set method = 2 for Sodemann et al. (2008) [int]
 method = 1
 
 #To filter precipitating parcels ["True" / "False"]  [str]
@@ -183,22 +207,18 @@ dqdt_threshold = -0.0001
 filter_parcels_height = False
 
 #Vertical layer for filtering parcels by height [lower_layer, upper_layer] [meters]. It is only necessary if filter_parcels_height = True.
-filter_vertical_layers=[0,25000]
+filter_vertical_layers = [0,25000]
 
 #To compute the moisture uptake in vertical layers ["True" / "False"]  [str]
 use_vertical_layers = False
 
 #Vertical layers to compute moisture uptake
-vertical_layers=[0, 750, 1500, 2250, 3000, 4000, 6000, 9000, 12000, 15000, 20000]
+vertical_layers = [0, 750, 900, 1500, 2250, 3000, 4000, 6000, 9000, 12000, 15000, 20000]
 
 #File output format. Set 1 to activate output format and 0 to deactivate [int]
 output_txt = 0
 output_npy = 0
 output_nc = 1
-
-#-----------------
-# Other parameters
-#-----------------
 
 #Target region name [str]
 name_target_region = "CAN"
@@ -206,28 +226,39 @@ name_target_region = "CAN"
 #Set file_gz=1 if partposit files are compressed in gz format, else file_gz=0 [int]
 file_gz = 0
 
-#---------------
-#AUXILIAR TOOLS
-#---------------
-
 #To save particle positions for each time step [str]
-save_position_part = False
+save_position_part = True
 
 #To save dqdt positions for each dt [str]
-save_position_dqdt = False
+save_position_dqdt = True
 
 #Plotting identified parcels within the target region at time t0 (year_month_day_hour_min) [True /  False] [str]
-plotting_parcels_t0=False
+plotting_parcels_t0 = False
 
 #Ploting identified parcels trajectories on a map [True /  False] [str]
-plotting_parcels_tracks_on_map=False
+plotting_parcels_tracks_on_map = False
 
 #Map limits for plotting [latmin, lonmin, latmax, lonmax, mapcenter, dlat, dlon] [float]
 #map center must be 0 or 180. If center=180, provide lonmin and lonmax in 0-360 format
-maps_limits=[0, -110, 75, 15, 0, 5, 25]
+maps_limits = [0, -110, 75, 15, 0, 5, 25]
 
 #Plotting 3D parcels trajectories [True /  False]
-plotting_3Dparcels_tracks=False
+plotting_3Dparcels_tracks = False
+
+#Calendar leap/noleap ["True" / "False"]  [str]
+noleap = False
+
+#Parameter to limit the particles to the domain limits. Consider only in regional models ["True" / "False"]  [str]
+limit_domain = True
+
+#Parameter to activate the calculation of the water vapor residence time together with the calculation of the humidity sources in backward mode ["True" / "False"]  [str]
+method_wvrt = False
+
+#Plotting the pattern of moisture sources or sinks [True /  False] [str]
+plotting_moisture_sink_source = True
+
+#Color pallete limits for plotting [min, max, step] [float]
+limits_plot = [0, 3.2, 0.2]
 ```
 ### Input data
 
@@ -239,7 +270,7 @@ In addition, to run TROVA the following data sets are needed:
 
 # How do I run TROVA?
 
-To run TROVA version 1.1, create a file with the following code (could be **run_TROVA.py**)
+To run TROVA, create a file with the following code (could be **run_TROVA.py**)
 
 ```
 #!/usr/bin/env python3
@@ -281,9 +312,21 @@ srun -n $SLURM_NTASKS --mpi=pmi2 python  run_TROVA.py input_file_path >> py_${SL
 
 **input_file_path:** *Input file path for TROVA run.*
 
-# Examples
+## Illustrative examples for a specific day
 
-Firstly, the necessary data to be able to carry out tests with TROVA can be downloaded at the link: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10139577.svg)](https://doi.org/10.5281/zenodo.10139577). Once you have downloaded the input data corresponding to FLEXPART forced with ERA-Interim, you can use the configuration files and masks available at https://github.com/tramo-ephyslab/TROVA/tree/main/Inputs and https:// github.com/tramo-ephyslab/TROVA/tree/main/Masks respectively. These data are for tests on a certain day and using the methodology of Stohl and James (2005). The results for three days (review the configuration files that correspond to a specific day), either to determine sources or sinks of humidity and analysis of sources by vertical layers are available at https://github.com/tramo-ephyslab /TROVA/tree/main/output . Check that once TROVA is installed you can reproduce these results.
+Using the data corresponding to the outputs of FLEXPART-WRF forced with ERA5 
+and the TROVA configuration file provided in the following repository [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14886887.svg)](https://zenodo.org/records/14886887)
+and [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14939160.svg)]( https://zenodo.org/records/14939160), the results shown below for October 17, 2014 (moisture source, using as CAN target region), and October 6, 2014 (moisture sink, using as MED target region), can be reproduced. Configuration files and masks are available at https://github.com/tramo-ephyslab/TROVA-master/tree/main/Masks and https://github.com/tramo-ephyslab/TROVA-master/tree/main/Inputs. In these cases, the methodology of Stohl and James (2005) is used. Check that once TROVA is installed you can reproduce these results.
+
+<p align="center" width="100%">
+ <img src="https://github.com/tramo-ephyslab/TROVA-master/blob/develop/Figures/moisture_source_20141017000000.png" width=50% height=50%>
+ </p>
+
+
+ <p align="center" width="100%">
+ <img src="https://github.com/tramo-ephyslab/TROVA-master/blob/develop/Figures/moisture_sink_20141006000000.png" width=50% height=50%>
+ </p>
+
 
 ## Climatological analysis
 
@@ -310,11 +353,11 @@ This code is not bug-free. Please report any bugs through 'Issues': https://gith
 
 ## Contact and support
 
-José Carlos Fernández Alvarez (jose.carlos.fernandez.alvarez@uvigo.es) and Albenis Pérez Alarcón (albenis.perez.alarcon@uvigo.es)
+José Carlos Fernández Alvarez (jose.carlos.fernandez.alvarez@uvigo.es, jcfernandez@cesga.es) and Albenis Pérez Alarcón (albenis.perez.alarcon@uvigo.es).
 
 # LICENSE
 
-Copyright 2023 Fernández-Alvarez et al. (2022)
+Copyright 2025 Fernández-Alvarez et al. (2022)
 
 This software is published under the GPLv3 license. This means:
 
