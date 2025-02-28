@@ -35,20 +35,20 @@ regional model at different spatial resolutions. It also includes the methodolog
 of Stohl and James (2005) and Sodemann et al. (2008). We herein refer to these methodologies
 as STHOL2005 and SOD2008 respectively. It contains two main modules:
 
-1- Developed in Python, responsible for reading files, configuring TROVA, and generating 
+- Developed in Python, responsible for reading files, configuring TROVA, and generating 
 the outputs of the moisture balance (Evaporation (E)-Precipitation (P)) for the number 
 of days selected in the simulations.
 
-2- Developed in Fortran, used in interface with Python to perform computationally 
+- Developed in Fortran, used in interface with Python to perform computationally 
 demanding calculations in the shortest possible time. It also includes a parallel 
 implementation using the MPI library to reduce TROVA's processing time.
 
-3- This new version includes the analysis of moisture sources and sinks by vertical layers.
+- This new version includes the analysis of moisture sources and sinks by vertical layers.
 
-4- This version allows the calculation of the residence time of water vapor in the 
+- This version allows the calculation of the residence time of water vapor in the 
 atmosphere for particles in a target region applying the methodology of Läderach and Sodemann (2016).
 
-5- This version has functions that allow the representation of moisture source and sink patterns and the representation in a 2D graph of the residence time values of water vapor in the atmosphere for particles in a target region.
+- This version has functions that allow the representation of moisture source and sink patterns and the representation in a 2D graph of the residence time values of water vapor in the atmosphere for particles in a target region.
 
 For a more detailed understanding of TROVA you can review the official TROVA API documentation: https://trova-docs.readthedocs.io/en/latest/.
 
