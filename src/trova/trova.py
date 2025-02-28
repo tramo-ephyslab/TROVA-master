@@ -63,8 +63,6 @@ from .functions import search_row as sRow
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 print = functools.partial(print, flush=True)
 
-#--------------------------------------------------------------------
-#New functions python
 def Kdif_python(matrix1, matrix2, paso):
     """
     Computes the difference between two matrices based on a given step.
@@ -150,7 +148,6 @@ def determined_id_python(value_mascara, value_mask):
     matching_indices = np.where(value_mascara == value_mask)[0]
     vector[matching_indices] = matching_indices
     return vector
-#--------------------------------------------------------------------
 
 def check_paths(pfile, path):
     """
@@ -795,65 +792,6 @@ def write_nc(dates, tensor, vartype, filename="output"):
     })
     ncout.close()
 
-def guardar_submatriz_netcdf(archivo_salida, dates, parcels, partpos):
-
-    """
-    Guarda una submatriz en un archivo NetCDF con las dimensiones y atributos especificados.
-
-    Parámetros:
-    - archivo_salida (str): Nombre del archivo NetCDF de salida.
-    - times (numpy array): Vector de tiempos con dimensión (time,).
-    - parcels (numpy array): IDs de partículas con dimensión (npart,).
-    - partpos (numpy array): Matriz con dimensiones (time, npart, properties).
-    """
-
-    dates = list(map(lambda date: convert_date_to_ordinal(*decompose_date(date)), dates))
-
-    # Verificar dimensiones
-    time, npart, properties = partpos.shape
-
-    # Crear archivo NetCDF
-    ds = Dataset(archivo_salida, "w", format="NETCDF4")
-
-    # Crear dimensiones
-    ds.createDimension("time", time)
-    ds.createDimension("npart", npart)
-    ds.createDimension("properties", properties)
-
-    # Crear variables
-    times = ds.createVariable('times', np.dtype('float64').char, ('time'))
-    times.standard_name = 'times'
-    times.long_name = 'times'
-    times.units = 'day'
-    times.axis = 't'
-    times.calendar="gregorian"
-    times.description = "days since 1900-01-01"
-    times.units = "days since 1900-01-01"
-
-    parcels_var = ds.createVariable("parcels", "f4", ("npart",))
-    partpos_var = ds.createVariable("partpos", "f4", ("time", "npart", "properties"))
-
-    parcels_var.standard_name = "parcels"
-    parcels_var.long_name = "Parcels IDs"
-
-    partpos_var.long_name = "Parcels position"
-    partpos_var.units = ""
-    partpos_var.standard_name = "Parcels position"
-    partpos_var.coordinates = "times, npart, properties"
-    partpos_var.original_name = "Parcels position"
-
-    # Asignar atributos globales
-    ds.history = ("partpos[:,:,0] - longitude, partpos[:,:,1] - latitude, "
-                  "partpos[:,:,2] - dq/dt, partpos[:,:,3] - vertical position (m)")
-
-    # Asignar datos a variables
-    times[:] = dates
-    parcels_var[:] = parcels
-    partpos_var[:, :, :] = partpos
-
-    # Cerrar el archivo
-    ds.close()
-
 def create_directory(path):
     """
     Creates a directory if it does not exist.
@@ -891,14 +829,14 @@ def read_binaryFile_fortran(filename, type_file,x_left_lower_corner,y_left_lower
     numpy.ndarray: The data read from the binary file.
     """
 
-    if type_file==1: #FLEXPART-WRF
+    if type_file==1:
         with open(filename,'rb') as inputfile:
             a=b''.join([line for line in inputfile])
         npart=struct.unpack('iiii', a[0:16])
         npart=npart[2]
         data= RBF(filename,npart,x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain)
 
-    if type_file==2: #FLEXPART-ERAI and FELEXPART-ERA5
+    if type_file==2:
         len_a=lf(filename)
         npart=((len_a-12)/60)-1
         data= RBF(filename,npart, x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain)
@@ -1065,8 +1003,7 @@ def determine_id_binary_grid_NR_fortran(data, lat_mascara, lon_mascara, value_ma
     """
     
     value_mascara = funtion_interpol_mascara(lat_mascara, lon_mascara, value_mascara, data)
-    #id_vector = np.array(D_id(value_mascara.astype(int), value_mask, len(value_mascara)),dtype=int) #Fortran
-    id_vector = determined_id_python(value_mascara.astype(int), value_mask) #python #ESTE DA MAYOR VELOCIDAD
+    id_vector = determined_id_python(value_mascara.astype(int), value_mask)
 
     submatrix=[]
     ind=[]
@@ -1090,7 +1027,6 @@ def search_row_fortran(lista, matrix):
     Returns:
     numpy.ndarray: A new matrix with rows from the input matrix that match the values in the list.
     """
-    #matrix_=np.array(sRow(matrix, lista, len(lista), len(matrix[:,0])), np.float64) #Fortran
     matrix_ = search_row_python(matrix, lista) #python 
     return matrix_
 
@@ -1234,7 +1170,7 @@ def generate_file(paso, dtime, totaltime, fecha, path, key_gz, noleap):
     list_fecha = []
     listdates = []
     
-    if paso in [-1, -2, -3]: #paso == -1 or paso ==-2 or paso == -3: #backward, wvrt or partposit
+    if paso in [-1, -2, -3]: 
         array = np.arange(nhour, 0, -dtime)
         for i in array:
             a = str(time_calcminutes(fecha, float(i) * (-1)))
@@ -1284,7 +1220,7 @@ def generate_file(paso, dtime, totaltime, fecha, path, key_gz, noleap):
                     list_fecha = np.insert(list_fecha, 0, new_name)
                     listdates = np.insert(listdates, 0, int(new_date_str))
             
-    if paso == 1: #forward
+    if paso == 1:
         array =np.arange(0,nhour+dtime, dtime)
         for i in array:
             a=str(time_calcminutes(fecha,float(i)))
@@ -1327,31 +1263,6 @@ def generate_file(paso, dtime, totaltime, fecha, path, key_gz, noleap):
 
     return list_fecha, listdates
 
-#FUNCIONES DE PRUEBA PARA TROVAJAR ERRORES
-def find_indices_in_list2(list1, list2):
-    index_dict = {}
-    for index, value in enumerate(list2):
-        if value not in index_dict:
-            index_dict[value] = []
-        index_dict[value].append(index)
-
-    matching_indices = []
-    for value in list1:
-        if value in index_dict:
-            matching_indices.extend(index_dict[value])
-
-    return matching_indices
-
-def save_txt(filename, matrix1, matrix2, matrix3, matrix4):
-    
-    matrix_final = np.empty((len(matrix1), 4))
-    matrix_final[:,0] = matrix1[:]
-    matrix_final[:,1] = matrix2[:]
-    matrix_final[:,2] = matrix3[:]
-    matrix_final[:,3] = matrix4[:]
-    np.savetxt(filename+".txt", matrix_final)
-
-
 def read_proccesor(lista_partposi,submatrix, rank, x_left_lower_corner,y_left_lower_corner,
                x_right_upper_corner,y_right_upper_corner, model, key_gz, type_file, limit_domain):
     
@@ -1392,14 +1303,7 @@ def read_proccesor(lista_partposi,submatrix, rank, x_left_lower_corner,y_left_lo
             part_post_i=read_binaryFile_fortran(lista_partposi[i], type_file,x_left_lower_corner,y_left_lower_corner,
                x_right_upper_corner,y_right_upper_corner, limit_domain)
 
-        matrix_i=search_row_fortran(submatrix[:,0],part_post_i)        
-        
-        #debug
-        #print ("CPU ->", "FILE->", i,  (len(matrix_i[matrix_i[:, 0]>-900., 0])/len(submatrix[:, 0]))*100)
-        #save_txt(lista_partposi[i].split("/")[-1], part_post_i[:, 0], part_post_i[:, 1], part_post_i[:, 2], part_post_i[:,4])
-        #fpart = open("part_post"+".txt", "a")
-        #fpart.write("%s %.10f\n"%(lista_partposi[i].split("/")[-1],  (len(matrix_i[matrix_i[:, 0]>-900., 0])/len(submatrix[:, 0]))*100))
-    
+        matrix_i=search_row_fortran(submatrix[:,0],part_post_i)         
         tensor_local[i,:,:]=matrix_i
     return tensor_local
 
@@ -1432,8 +1336,7 @@ def remove_rows_with_value(tensor, tensor_por, idPart, qIni, ref_index=0, value=
     filtered_tensor_por = tensor_por[:, mask, :]
     filtered_idPart = idPart[mask]
     filtered_qIni = qIni[mask]
-    #debug
-    #print("Filtered", filtered_tensor.shape, filtered_tensor_por.shape, len(filtered_idPart), len(filtered_qIni))
+
     return filtered_tensor, filtered_tensor_por, filtered_idPart, filtered_qIni
 
 def plot_residence_time(residence_time_particles, residence_time_mean, output_dir, date, rank):
@@ -1456,7 +1359,6 @@ def plot_residence_time(residence_time_particles, residence_time_mean, output_di
     plt.axhline(y=residence_time_mean, color='r', linestyle='--', label=f'Mean: {residence_time_mean:.2f} days')
     plt.xlabel('Particle number')
     plt.ylabel('Residence time (days)')
-    #plt.title(f'Residence Time for All Particles (Mean: {residence_time_mean:.2f} days)')
     plt.legend()
     plot_file = f"{output_dir}WVRT_plot_{date}.png"
     plt.savefig(plot_file, bbox_inches='tight', dpi=300)
@@ -1537,10 +1439,12 @@ def compute_residence_time_and_save(dqdt, output_dir, date, dtime, totaltime, fo
     residence_time_particles_var.long_name = "Water vapor residence time of particles"
     residence_time_particles_var.units = "days"
     residence_time_particles_var.standard_name = "residence_time_particles"
-
+    residence_time_particles_var.negative_values = "Values are negative because they are considered in backward mode in time"
+    
     residence_time_mean_var.long_name = "Mean water vapor residence time"
     residence_time_mean_var.units = "days"
     residence_time_mean_var.standard_name = "residence_time_mean"
+    residence_time_mean_var.negative_values = "Value is negative because it is considered in backward mode in time"
 
     # Assign data to variables
     residence_time_particles_var[:] = residence_time_particles
@@ -1630,15 +1534,7 @@ def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
     lat_masked, lon_masked, mascara=load_mask_grid_NR(file_mask, name_mascara,name_variable_lon, name_variable_lat)
     submatrix=determine_id_binary_grid_NR_fortran(part_post, lat_masked.flatten(), lon_masked.flatten(), mascara.flatten(), value_mask)
     submatrix=submatrix[np.argsort(submatrix[:, 0])]
-    
-    #debug
-    #print ("inicial ->", (len(submatrix[submatrix[:, 0]>-900., 0])/len(submatrix[:, 0]))*100)
-    #print (submatrix.shape)
-    # print (submatrix[:, 0], len(submatrix[:, 0]))
-    #save_txt(name_file.split("/")[-1], submatrix[:,0], submatrix[:,1], submatrix[:,2], submatrix[:,4])
-    
-#   fpart = open("part_post"+".txt", "a")
-    
+        
     if filter_parcels_height:
        submatrix, counter_part_height = Filter_by_Height(submatrix,submatrix,-1,filter_vertical_layers[0],filter_vertical_layers[1], len(submatrix[:, 0]))
 
@@ -1654,12 +1550,6 @@ def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
         part_post_i=read_binaryFile_fortran(lista_partposi[-2], type_file, x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, limit_domain)
     
     matrix_i=search_row_fortran(submatrix[:,0],part_post_i)
-    
-    #debug
-    #print ("segundo ->", (len(matrix_i[matrix_i[:, 0]>-900., 0])/len(submatrix[:, 0]))*100)
-    #print (matrix_i[:, 0], submatrix[:, 0])
-    #save_txt(lista_partposi[-2].split("/")[-1], part_post_i[:,0], part_post_i[:,1], part_post_i[:,2], part_post_i[:,4])
-    #fpart.write("%s %.10f\n"%(lista_partposi[-2].split("/")[-1], (len(matrix_i[matrix_i[:, 0]>-900., 0])/len(submatrix[:, 0]))*100))
     
     dimX, dimY=matrix_i.shape
 
@@ -1729,7 +1619,6 @@ def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
      
     
     for i in a2[::-1]:
-        #matrix=kdif(tensor_t[i,:,:5], tensor_t[i+1,:,:5],-1.,len(submatrix[:,0]), 5)
         matrix = Kdif_python (tensor_t[i,:,:5], tensor_t[i+1,:,:5],-1.)
         matrix_result[i,:,2]=matrix[:,2]
         matrix_result[i,:,1]=matrix[:,1]
@@ -1759,8 +1648,6 @@ def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
         for i in range(len(matrix_result_por[:,0,0])):
             matrix_result_por[i,:,2]=(matrix_result[i,:, 2]/tensor_t[-1,:,3])*100
     
-    #debug
-    #print ("Reference Index", matrix_result.shape[0]-1)
     matrix_result, matrix_result_por, Filtered_idPart, Filtered_qIni = remove_rows_with_value(matrix_result, matrix_result_por, tensor_t[-1,:,0], tensor_t[-1,:,3], ref_index=matrix_result.shape[0]-1, value=-999.9)
         
     if rank==0:
@@ -1778,7 +1665,6 @@ def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
             f.write("%s %.2f\n"%("Mean_WVRT: ",np.abs(wvrt_mean)))
     
     return matrix_result, Filtered_idPart, matrix_result_por, Filtered_qIni, tensor_org, lat_masked, lon_masked, mascara
-    #return matrix_result, tensor_t[-1,:,0], matrix_result_por, tensor_t[-1,:,3], tensor_org, lat_masked, lon_masked, mascara
 
 def _forward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name_variable_lat,lat_f, lon_f,rank,size,comm, type_file,
                 x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, model, value_mask, key_gz,path_output,use_vertical_layers, vertical_layers, filter_parcels_height, filter_vertical_layers, limit_domain):
@@ -1901,7 +1787,6 @@ def _forward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name_
     matrix_result=np.ones((len(tensor_t[:,0,0])-1, len(submatrix[:,0]),4))*(-999.9)
     a2=np.arange(len(tensor_t[:,0,0])-1)
     for i in a2:
-        #matrix=kdif(tensor_t[i,:,:5], tensor_t[i+1,:,:5],1.,len(submatrix[:,0]), 5)
         matrix = Kdif_python(tensor_t[i,:,:5], tensor_t[i+1,:,:5],1.)
         matrix_result[i,:,2]=matrix[:,2]
         matrix_result[i,:,1]=matrix[:,1]
@@ -2379,12 +2264,12 @@ def is_binary(file_path):
     """
     try:
         with open(file_path, "rb") as f:
-            chunk = f.read(1024)  # Read a small chunk of the file
-            if b"\x00" in chunk:  # If NULL bytes exist, it's binary
+            chunk = f.read(1024)  
+            if b"\x00" in chunk: 
                 return True
     except Exception:
         return False
-    return False  # Assume text file if no binary indicators are found
+    return False 
 
 def verify_binary_files(file_list):
     """
