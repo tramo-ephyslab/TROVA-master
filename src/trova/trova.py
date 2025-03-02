@@ -25,6 +25,7 @@
 # along with TROVA. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import argparse
 import numpy as np
 import sys
 from time import time
