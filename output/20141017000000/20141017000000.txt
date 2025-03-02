@@ -1,1 +1,48 @@
-NumP:  871
+NumP:  4373
+NumP:  4373
+NumP:  4373
+NumP:  4373
+NumP:  4373
+NumP:  4373
+NumP:  4373
+NumP:  4373
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  5.56
+NumP:  4373 Mean_WVRT:  5.56
+NumP:  4373 Mean_WVRT:  5.56
+NumP:  4373 Mean_WVRT:  5.56
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  0.32
+NumP:  4373 Mean_WVRT:  5.56
+NumP:  4373 Mean_WVRT:  5.56
+NumP:  4373 Mean_WVRT:  5.56
+NumP:  4373 Mean_WVRT:  5.56
+NumP:  4373
+NumP:  4373
+NumP:  4373
+NumP:  4373
+NumP:  4373
+NumP:  4373
+NumP:  4373
+NumP:  4373
+NumP:  4373
+NumP:  4373
+NumP:  4373
+NumP:  4373
