@@ -2776,7 +2776,6 @@ def TROVA_main(input_file):
                         print ("+ You are using methodology of Stohl and James (2005) (DOI:10.1175/1525-7541(2004)005<0656:ALAOTA>2.0.CO;2)")
                     if method==2:
                         print ("+ You are using methodology of Sodemann et al. (2008) (DOI:10.1002/2017JD027543)")
-                    print ('                                                                                          ')
                     print ('+ Target region ->  '+name_target_region)
                     print ('+ CPUs for tracking ->   '+ str(size))
                     print("+ Tracking mode -> " + str(mode))
