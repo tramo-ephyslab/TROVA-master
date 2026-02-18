@@ -48,20 +48,20 @@ from mpl_toolkits.mplot3d import Axes3D
 import math
 import importlib.machinery
 from mpi4py import MPI
+
 from .functions import k_dq as K_dq
 from .functions import k_dq_layers as K_dq_layers
-from .functions import read_binary_file as RBF
-from .functions import len_file as lf
-from .functions import k_dq_so as K_dq_So
 from .functions import k_dq_por as K_dq_POR
-from .functions import filter_part as Filter_Part
+from .functions import k_dq_so as K_dq_So
 from .functions import filter_part2 as Filter_Part2
 from .functions import filter_part_by_height as Filter_by_Height
-from .functions import determined_id as D_id
-from .functions import search_row as sRow
+from .functions import read_binary_file_flexpart_height as RBF_new_h
+
+
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 print = functools.partial(print, flush=True)
 
+#--------------------------------------------------------------------
 def Kdif_python(matrix1, matrix2, paso):
     """
     Computes the difference between two matrices based on a given step.
@@ -93,7 +93,7 @@ def Kdif_python(matrix1, matrix2, paso):
         output[valid_indices, 1] = matrix2[valid_indices, 2]
         output[valid_indices, 0] = matrix2[valid_indices, 1]
         output[valid_indices, 3] = matrix2[valid_indices, 4]
-    
+
     return output
 
 def search_row_python(matrix, lista):
@@ -147,6 +147,38 @@ def determined_id_python(value_mascara, value_mask):
     matching_indices = np.where(value_mascara == value_mask)[0]
     vector[matching_indices] = matching_indices
     return vector
+
+def len_file_python(filename):
+    
+    """
+    Returns the size of a file in bytes.
+
+    Parameters
+    ----------
+    filename : str
+        Path to the file.
+
+    Returns
+    -------
+    int
+        Size of the file in bytes.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the file does not exist.
+
+    Notes
+    -----
+    This function checks whether the file exists and then returns its size in bytes
+    using `os.path.getsize`.
+    """
+     
+    if os.path.exists(filename):
+        return os.path.getsize(filename)
+    else:
+        raise FileNotFoundError(f"File no found: {filename}")
+#--------------------------------------------------------------------
 
 def check_paths(pfile, path):
     """
@@ -493,6 +525,8 @@ def plot_moisture_sink_source(lon, lat, data, paso, path_output, folder, limit_p
     fig = plt.figure(figsize=(14, 10))
     ax1 = plt.subplot(111, projection=ccrs.PlateCarree())
     ax1.set_extent([np.min(lon), np.max(lon), np.min(lat), np.max(lat)], crs=ccrs.PlateCarree())
+    #ax1.set_extent([-180, 180, -90, 90], crs=ccrs.PlateCarree())
+    
     ax1.add_feature(cfeature.COASTLINE.with_scale('10m'), linewidth=0.9)    
     
     if paso == -1:
@@ -791,6 +825,65 @@ def write_nc(dates, tensor, vartype, filename="output"):
     })
     ncout.close()
 
+def guardar_submatriz_netcdf(archivo_salida, dates, parcels, partpos):
+
+    """
+    Guarda una submatriz en un archivo NetCDF con las dimensiones y atributos especificados.
+
+    Parámetros:
+    - archivo_salida (str): Nombre del archivo NetCDF de salida.
+    - times (numpy array): Vector de tiempos con dimensión (time,).
+    - parcels (numpy array): IDs de partículas con dimensión (npart,).
+    - partpos (numpy array): Matriz con dimensiones (time, npart, properties).
+    """
+
+    dates = list(map(lambda date: convert_date_to_ordinal(*decompose_date(date)), dates))
+
+    # Verificar dimensiones
+    time, npart, properties = partpos.shape
+
+    # Crear archivo NetCDF
+    ds = Dataset(archivo_salida, "w", format="NETCDF4")
+
+    # Crear dimensiones
+    ds.createDimension("time", time)
+    ds.createDimension("npart", npart)
+    ds.createDimension("properties", properties)
+
+    # Crear variables
+    times = ds.createVariable('times', np.dtype('float64').char, ('time'))
+    times.standard_name = 'times'
+    times.long_name = 'times'
+    times.units = 'day'
+    times.axis = 't'
+    times.calendar="gregorian"
+    times.description = "days since 1900-01-01"
+    times.units = "days since 1900-01-01"
+
+    parcels_var = ds.createVariable("parcels", "f4", ("npart",))
+    partpos_var = ds.createVariable("partpos", "f4", ("time", "npart", "properties"))
+
+    parcels_var.standard_name = "parcels"
+    parcels_var.long_name = "Parcels IDs"
+
+    partpos_var.long_name = "Parcels position"
+    partpos_var.units = ""
+    partpos_var.standard_name = "Parcels position"
+    partpos_var.coordinates = "times, npart, properties"
+    partpos_var.original_name = "Parcels position"
+
+    # Asignar atributos globales
+    ds.history = ("partpos[:,:,0] - longitude, partpos[:,:,1] - latitude, "
+                  "partpos[:,:,2] - dq/dt, partpos[:,:,3] - vertical position (m)")
+
+    # Asignar datos a variables
+    times[:] = dates
+    parcels_var[:] = parcels
+    partpos_var[:, :, :] = partpos
+
+    # Cerrar el archivo
+    ds.close()
+
 def create_directory(path):
     """
     Creates a directory if it does not exist.
@@ -809,7 +902,8 @@ def create_directory(path):
     except OSError:
         pass
 
-def read_binaryFile_fortran(filename, type_file,x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, limit_domain):
+
+def read_binaryFile_fortran(filename, type_file,x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height):
     """
     Reads a binary file using Fortran routines.
 
@@ -828,24 +922,27 @@ def read_binaryFile_fortran(filename, type_file,x_left_lower_corner,y_left_lower
     numpy.ndarray: The data read from the binary file.
     """
 
-    if type_file==1:
+    if type_file==1: #FLEXPART-WRF
         with open(filename,'rb') as inputfile:
             a=b''.join([line for line in inputfile])
         npart=struct.unpack('iiii', a[0:16])
         npart=npart[2]
-        data= RBF(filename,npart,x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain)
-
-    if type_file==2:
-        len_a=lf(filename)
+        data_= RBF_new_h(filename,npart,x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)  #metodo de lectura nuevo
+   
+    if type_file==2: #FLEXPART-ERAI and FELEXPART-ERA5
+        len_a = len_file_python(filename)
         npart=((len_a-12)/60)-1
-        data= RBF(filename,npart, x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain)
+        data_= RBF_new_h(filename,npart, x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
+    
 
     if limit_domain == 1:
-        ind=np.where(data[:, 0]==-999.)
-        data = np.delete(data, ind[0], axis=0)
-    else:
-        data=data
-    return data
+        data_ = data_[~np.any(data_ == -999., axis=1)]
+    
+    if limit_height==1:
+        mask = np.any(data_ == -999, axis=1)
+        data_ = data_[~mask]
+
+    return data_
 
 def load_mask_grid_NR(filename, name_mascara,name_variable_lon, name_variable_lat):
     """
@@ -1002,7 +1099,8 @@ def determine_id_binary_grid_NR_fortran(data, lat_mascara, lon_mascara, value_ma
     """
     
     value_mascara = funtion_interpol_mascara(lat_mascara, lon_mascara, value_mascara, data)
-    id_vector = determined_id_python(value_mascara.astype(int), value_mask)
+    #id_vector = np.array(D_id(value_mascara.astype(int), value_mask, len(value_mascara)),dtype=int) #Fortran
+    id_vector = determined_id_python(value_mascara.astype(int), value_mask) #python #ESTE DA MAYOR VELOCIDAD
 
     submatrix=[]
     ind=[]
@@ -1012,6 +1110,46 @@ def determine_id_binary_grid_NR_fortran(data, lat_mascara, lon_mascara, value_ma
             ind.append(ii)
     submatrix=np.reshape(submatrix,(len(ind), 11))
     return submatrix
+
+def determine_id_binary_grid_NR_vectorized(data, lat_mascara, lon_mascara, value_mascara, value_mask):
+    """
+    Vectorized version of determine_id_binary_grid_NR_fortran.
+    Selects rows of 'data' corresponding to a given mask value.
+
+    Parameters
+    ----------
+    data : np.ndarray
+        Array of data points (n, m).
+    lat_mascara : np.ndarray
+        Latitude array for the mask.
+    lon_mascara : np.ndarray
+        Longitude array for the mask.
+    value_mascara : np.ndarray
+        Mask values to be interpolated.
+    value_mask : int
+        Target mask value to match.
+
+    Returns
+    -------
+    np.ndarray
+        Submatrix of 'data' where mask value equals 'value_mask'.
+    """
+
+    # Interpolate mask values to data grid
+    value_mascara_interp = funtion_interpol_mascara(lat_mascara, lon_mascara, value_mascara, data)
+    
+    # Determine indices where mask == value_mask
+    id_vector = determined_id_python(value_mascara_interp.astype(int), value_mask)  # keep your optimized Python version
+
+    # Create mask for valid indices (remove -999)
+    valid_mask = id_vector != -999.
+
+    # Use direct indexing instead of looping + np.append
+    valid_indices = id_vector[valid_mask]
+    submatrix = data[valid_indices, :]
+
+    return submatrix
+
 
 def search_row_fortran(lista, matrix):
     """
@@ -1026,6 +1164,7 @@ def search_row_fortran(lista, matrix):
     Returns:
     numpy.ndarray: A new matrix with rows from the input matrix that match the values in the list.
     """
+    #matrix_=np.array(sRow(matrix, lista, len(lista), len(matrix[:,0])), np.float64) #Fortran
     matrix_ = search_row_python(matrix, lista) #python 
     return matrix_
 
@@ -1169,7 +1308,7 @@ def generate_file(paso, dtime, totaltime, fecha, path, key_gz, noleap):
     list_fecha = []
     listdates = []
     
-    if paso in [-1, -2, -3]: 
+    if paso in [-1, -2, -3]: #paso == -1 or paso ==-2 or paso == -3: #backward, wvrt or partposit
         array = np.arange(nhour, 0, -dtime)
         for i in array:
             a = str(time_calcminutes(fecha, float(i) * (-1)))
@@ -1219,7 +1358,7 @@ def generate_file(paso, dtime, totaltime, fecha, path, key_gz, noleap):
                     list_fecha = np.insert(list_fecha, 0, new_name)
                     listdates = np.insert(listdates, 0, int(new_date_str))
             
-    if paso == 1:
+    if paso == 1: #forward
         array =np.arange(0,nhour+dtime, dtime)
         for i in array:
             a=str(time_calcminutes(fecha,float(i)))
@@ -1262,8 +1401,32 @@ def generate_file(paso, dtime, totaltime, fecha, path, key_gz, noleap):
 
     return list_fecha, listdates
 
+def find_indices_in_list2(list1, list2):
+    index_dict = {}
+    for index, value in enumerate(list2):
+        if value not in index_dict:
+            index_dict[value] = []
+        index_dict[value].append(index)
+
+    matching_indices = []
+    for value in list1:
+        if value in index_dict:
+            matching_indices.extend(index_dict[value])
+
+    return matching_indices
+
+def save_txt(filename, matrix1, matrix2, matrix3, matrix4):
+    
+    matrix_final = np.empty((len(matrix1), 4))
+    matrix_final[:,0] = matrix1[:]
+    matrix_final[:,1] = matrix2[:]
+    matrix_final[:,2] = matrix3[:]
+    matrix_final[:,3] = matrix4[:]
+    np.savetxt(filename+".txt", matrix_final)
+
+
 def read_proccesor(lista_partposi,submatrix, rank, x_left_lower_corner,y_left_lower_corner,
-               x_right_upper_corner,y_right_upper_corner, model, key_gz, type_file, limit_domain):
+               x_right_upper_corner,y_right_upper_corner, model, key_gz, type_file, limit_domain, limit_height, value_height):
     
     """
     Reads and processes binary files in parallel.
@@ -1295,14 +1458,15 @@ def read_proccesor(lista_partposi,submatrix, rank, x_left_lower_corner,y_left_lo
         if key_gz==1:
             desc_gz(lista_partposi[i])
             part_post_i=read_binaryFile_fortran(lista_partposi[i][:-3], type_file,x_left_lower_corner,y_left_lower_corner,
-               x_right_upper_corner,y_right_upper_corner, limit_domain)
+               x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
             cmd_rm= "rm -rf "+lista_partposi[i][:-3]
             os.system(cmd_rm)
         else:
             part_post_i=read_binaryFile_fortran(lista_partposi[i], type_file,x_left_lower_corner,y_left_lower_corner,
-               x_right_upper_corner,y_right_upper_corner, limit_domain)
+               x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
 
-        matrix_i=search_row_fortran(submatrix[:,0],part_post_i)         
+        matrix_i=search_row_fortran(submatrix[:,0],part_post_i)        
+          
         tensor_local[i,:,:]=matrix_i
     return tensor_local
 
@@ -1335,7 +1499,7 @@ def remove_rows_with_value(tensor, tensor_por, idPart, qIni, ref_index=0, value=
     filtered_tensor_por = tensor_por[:, mask, :]
     filtered_idPart = idPart[mask]
     filtered_qIni = qIni[mask]
-
+ 
     return filtered_tensor, filtered_tensor_por, filtered_idPart, filtered_qIni
 
 def plot_residence_time(residence_time_particles, residence_time_mean, output_dir, date):
@@ -1358,6 +1522,7 @@ def plot_residence_time(residence_time_particles, residence_time_mean, output_di
     plt.axhline(y=residence_time_mean, color='r', linestyle='--', label=f'Mean: {residence_time_mean:.2f} days')
     plt.xlabel('Particle number')
     plt.ylabel('Residence time (days)')
+ 
     plt.legend()
     plot_file = f"{output_dir}WVRT_plot_{date}.png"
     plt.savefig(plot_file, bbox_inches='tight', dpi=300)
@@ -1367,111 +1532,102 @@ def plot_residence_time(residence_time_particles, residence_time_mean, output_di
         print("--------------------------------------------------------------------")
         print(f"Plot for the residence time for all particles saved to {plot_file}")
         print("--------------------------------------------------------------------")
-   
+
+
 def compute_residence_time_and_save(dqdt, output_dir, date, dtime, totaltime, folder):
+    
     """
     Compute water vapor residence time from a dq/dt tensor and save results to a NetCDF file.
-    
+
     Parameters:
     dqdt (numpy.ndarray): dq/dt tensor.
     output_dir (str): Directory where the output NetCDF file will be saved.
     date (str): Date string for output file naming.
     dtime (int): Time step interval in minutes.
     totaltime (int): Total time in minutes.
-    
+
     Returns:
     None
     """
-   
+
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+
     dtime = dtime / 60  # Convert dtime to hours
     total_hours = totaltime / 60  # Convert totaltime to hours
     total_days = total_hours / 24  # Convert total_hours to days
 
-    # Compute specific humidity change ∆q = (dq/dt) * ∆t
     delta_q = dqdt * dtime
+    delta_q_positive = np.where(delta_q > 0, delta_q, np.nan)
+    total_q_increase = np.nansum(delta_q_positive, axis=0)
+    fi = delta_q_positive / total_q_increase
 
-    # Keep only positive ∆q values (increase in humidity)
-    delta_q_positive = np.where(delta_q > 0, delta_q, np.nan)  # Set negative values to NaN
+    time_steps = np.arange(-(total_hours - dtime), dtime, dtime)[:, np.newaxis]
+    residence_time_particles = np.nansum(fi * time_steps, axis=0) / 24
+    residence_time_mean = np.nanmean(residence_time_particles)
 
-    # Compute total increase in specific humidity for each particle
-    total_q_increase = np.nansum(delta_q_positive, axis=0) 
+    if rank == 0:
+        os.makedirs(output_dir, exist_ok=True)
+        os.chmod(output_dir, 0o777)
 
-    # Compute contribution ratio f_i = ∆q_i / sum(∆q)
-    fi = delta_q_positive / total_q_increase 
+        output_file = os.path.join(output_dir, f"WVRT_{folder}.nc")
+        
+        ds_out = Dataset(output_file, 'w', format='NETCDF4')
 
-    # Generate time steps (hours) based on the correct time order
-    # Generate time steps from -total_hours to 0 (steps of dtime hours)
-    time_steps = np.arange(-(total_hours-dtime), dtime, dtime)[:, np.newaxis]  # Reshape to (n_steps, 1) for broadcasting
-    #print(time_steps)
-  
-    # Compute residence time for each particle τ_i (in hours)
-    residence_time_particles = np.nansum(fi * time_steps, axis=0) / 24 
+        # Dimensiones
+        ds_out.createDimension('particle', residence_time_particles.shape[0])
+        ds_out.createDimension('time', 1)
 
-    # Compute the average residence time for the entire region (convert to days)
-    residence_time_mean = np.nanmean(residence_time_particles)   # Convert hours to days
+        # Variables
+        times = ds_out.createVariable('times', np.dtype('float64').char, ('time',))
+        times.standard_name = 'times'
+        times.long_name = 'times'
+        times.units = 'days since 1900-01-01'
+        times.axis = 't'
+        times.calendar = "gregorian"
 
-    # Print results
-    #print(f"Computed average residence time: {residence_time_mean:.2f} days")
+        residence_time_particles_var = ds_out.createVariable('residence_time_particles', 'f4', ('particle',))
+        residence_time_mean_var = ds_out.createVariable('residence_time_mean', 'f4')
 
-    # Create output filename with timestamp
-    output_file = f"{output_dir}WVRT_{folder}.nc"
+        residence_time_particles_var.long_name = "Water vapor residence time of particles"
+        residence_time_particles_var.units = "days"
+        residence_time_particles_var.standard_name = "residence_time_particles"
+        residence_time_particles_var.negative_values = "Values are negative because they are considered in backward mode in time"
 
-    # Save results to a NetCDF file
-    ds_out = Dataset(output_file, 'w', format='NETCDF4')
+        residence_time_mean_var.long_name = "Mean water vapor residence time"
+        residence_time_mean_var.units = "days"
+        residence_time_mean_var.standard_name = "residence_time_mean"
+        residence_time_mean_var.negative_values = "Value is negative because it is considered in backward mode in time"
 
-    # Create dimensions
-    ds_out.createDimension('particle', residence_time_particles.shape[0])
-    ds_out.createDimension('time', 1)
+        # Datos
+        residence_time_particles_var[:] = residence_time_particles
+        residence_time_mean_var.assignValue(residence_time_mean)
 
-    # Create variables
-    times = ds_out.createVariable('times', np.dtype('float64').char, ('time',))
-    times.standard_name = 'times'
-    times.long_name = 'times'
-    times.units = 'day'
-    times.axis = 't'
-    times.calendar = "gregorian"
-    times.description = "days since 1900-01-01"
-    times.units = "days since 1900-01-01"
+        date_ = list(map(lambda date: convert_date_to_ordinal(*decompose_date(date)), date))
+        times[:] = date_
 
-    residence_time_particles_var = ds_out.createVariable('residence_time_particles', 'f4', ('particle',))
-    residence_time_mean_var = ds_out.createVariable('residence_time_mean', 'f4')
+        # Atributos globales
+        ds_out.setncatts({
+            'Institution': 'Galicia Supercomputing Center (CESGA) and Environmental Physics Laboratory (EPhysLab), Centro de Investigación Mariña, Universidade de Vigo, Spain',
+            'Author': 'José Carlos Fernández Alvarez',
+            'Documentation': 'https://trova-docs.readthedocs.io/en/latest/',
+            'Code origin': 'José Carlos Fernández Alvarez et al. 2022, CESGA-UVIGO, Spain',
+            'Application': 'TROVA: TRansport Of water VApor'
+        })
 
-    residence_time_particles_var.long_name = "Water vapor residence time of particles"
-    residence_time_particles_var.units = "days"
-    residence_time_particles_var.standard_name = "residence_time_particles"
-    residence_time_particles_var.negative_values = "Values are negative because they are considered in backward mode in time"
-    
-    residence_time_mean_var.long_name = "Mean water vapor residence time"
-    residence_time_mean_var.units = "days"
-    residence_time_mean_var.standard_name = "residence_time_mean"
-    residence_time_mean_var.negative_values = "Value is negative because it is considered in backward mode in time"
+        ds_out.close()
 
-    # Assign data to variables
-    residence_time_particles_var[:] = residence_time_particles
-    residence_time_mean_var.assignValue(residence_time_mean) 
-    date_ = list(map(lambda date: convert_date_to_ordinal(*decompose_date(date)), date))
-    times[:] = date_ 
+        plot_residence_time(np.abs(residence_time_particles), np.abs(residence_time_mean), output_dir, str(int(date[0])))
 
-    # Add global attributes
-    ds_out.setncatts({
-        'Institution': 'Galicia Supercomputing Center (CESGA) and Environmental Physics Laboratory (EPhysLab), Centro de Investigación Mariña, Universidade de Vigo, Spain',
-        'Author': 'José Carlos Fernández Alvarez',
-        'Documentation': 'https://trova-docs.readthedocs.io/en/latest/',
-        'Code origin': 'José Carlos Fernández Alvarez et al. 2022, CESGA-UVIGO, Spain',
-        'Application': 'TROVA: TRansport Of water VApor'
-    })
-
-    # Close datasets
-    ds_out.close()
-
-    plot_residence_time(np.abs(residence_time_particles), np.abs(residence_time_mean), output_dir, str(int(date[0])))
+    comm.Barrier()
 
     return residence_time_mean
+
 
 def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name_variable_lat,lat_f, lon_f,rank,size, comm, type_file,
                  x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, model, method,threshold,filter_value,
                  value_mask, key_gz, path_output,use_vertical_layers, vertical_layers, filter_parcels_height, filter_vertical_layers,limit_domain, dates,
-                 dtime, totaltime, folder, method_wvrt):
+                 dtime, totaltime, folder, method_wvrt, limit_height, value_height):
     """
     Processes backward parcel tracking data.
 
@@ -1524,17 +1680,19 @@ def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
     if key_gz==1:
         desc_gz(name_file)
         part_post=read_binaryFile_fortran(name_file[:-3], type_file, x_left_lower_corner,y_left_lower_corner,
-               x_right_upper_corner,y_right_upper_corner, limit_domain)
+               x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
         cmd_rm= "rm -rf "+name_file[:-3]
         os.system(cmd_rm)
     else:
         part_post=read_binaryFile_fortran(name_file, type_file, x_left_lower_corner,y_left_lower_corner,
-               x_right_upper_corner,y_right_upper_corner, limit_domain)
+               x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
         
     lat_masked, lon_masked, mascara=load_mask_grid_NR(file_mask, name_mascara,name_variable_lon, name_variable_lat)
-    submatrix=determine_id_binary_grid_NR_fortran(part_post, lat_masked.flatten(), lon_masked.flatten(), mascara.flatten(), value_mask)
+    submatrix=determine_id_binary_grid_NR_vectorized(part_post, lat_masked.flatten(), lon_masked.flatten(), mascara.flatten(), value_mask)
+    
     submatrix=submatrix[np.argsort(submatrix[:, 0])]
-        
+    
+   
     if filter_parcels_height:
        submatrix, counter_part_height = Filter_by_Height(submatrix,submatrix,-1,filter_vertical_layers[0],filter_vertical_layers[1], len(submatrix[:, 0]))
 
@@ -1543,14 +1701,15 @@ def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
 
     if key_gz==1:
         desc_gz(lista_partposi[-2])
-        part_post_i=read_binaryFile_fortran(lista_partposi[-2][:-3], type_file, x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, limit_domain)
+        part_post_i=read_binaryFile_fortran(lista_partposi[-2][:-3], type_file, x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
         cmd_rm= "rm -rf "+lista_partposi[-2][:-3]
         os.system(cmd_rm)
     else:
-        part_post_i=read_binaryFile_fortran(lista_partposi[-2], type_file, x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, limit_domain)
+        part_post_i=read_binaryFile_fortran(lista_partposi[-2], type_file, x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
     
     matrix_i=search_row_fortran(submatrix[:,0],part_post_i)
     
+ 
     dimX, dimY=matrix_i.shape
 
     if filter_value!=0:
@@ -1582,7 +1741,7 @@ def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
     local_list=lista_partposi[start:stop]
     local_results = np.empty((len(local_list), dimX, dimY))
     local_results = read_proccesor(local_list, submatrix, rank,x_left_lower_corner,y_left_lower_corner,
-               x_right_upper_corner,y_right_upper_corner, model, key_gz, type_file, limit_domain)
+               x_right_upper_corner,y_right_upper_corner, model, key_gz, type_file, limit_domain, limit_height, value_height)
 
     if rank > 0:
         comm.Send(local_results, dest=0, tag=14)
@@ -1616,15 +1775,15 @@ def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
         
     matrix_result=np.ones((len(tensor_t[:,0,0])-1, len(submatrix[:,0]),4))*(-999.9)
     a2=np.arange(len(tensor_t[:,0,0])-1)
-     
     
     for i in a2[::-1]:
-        matrix = Kdif_python (tensor_t[i,:,:5], tensor_t[i+1,:,:5],-1.)
+
+        matrix = Kdif_python(tensor_t[i,:,:5], tensor_t[i+1,:,:5],-1.)
         matrix_result[i,:,2]=matrix[:,2]
         matrix_result[i,:,1]=matrix[:,1]
         matrix_result[i,:,0]=matrix[:,0]
         matrix_result[i,:,3]=matrix[:,3]
-
+    
     if method_wvrt==1:
         submatrix_wvrt = matrix_result[:, matrix_result[0, :, 0] != -999.9, :]
         wvrt_mean = compute_residence_time_and_save(submatrix_wvrt[:, :, 2], path_output+folder+"/", dates, dtime, totaltime, folder)
@@ -1663,11 +1822,12 @@ def _backward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
         if method_wvrt:
             print("   + Mean water vapor residence time => %.2f days" % np.abs(wvrt_mean))
             f.write("%s %.2f\n"%("Mean_WVRT: ",np.abs(wvrt_mean)))
-    
+
     return matrix_result, Filtered_idPart, matrix_result_por, Filtered_qIni, tensor_org, lat_masked, lon_masked, mascara
 
 def _forward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name_variable_lat,lat_f, lon_f,rank,size,comm, type_file,
-                x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, model, value_mask, key_gz,path_output,use_vertical_layers, vertical_layers, filter_parcels_height, filter_vertical_layers, limit_domain):
+                x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, model, value_mask, key_gz,path_output,
+                use_vertical_layers, vertical_layers, filter_parcels_height, filter_vertical_layers, limit_domain, limit_height, value_height):
     """
     Processes forward parcel tracking data.
 
@@ -1711,14 +1871,15 @@ def _forward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name_
     
     if key_gz==1:
         desc_gz(name_file)
-        part_post=read_binaryFile_fortran(name_file[:-3], type_file,x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain)
+        part_post=read_binaryFile_fortran(name_file[:-3], type_file,x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
         cmd_rm= "rm -rf "+name_file[:-3]
         os.system(cmd_rm)
     else:
-        part_post=read_binaryFile_fortran(name_file, type_file,x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain)
+        part_post=read_binaryFile_fortran(name_file, type_file,x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
 
     lat_masked, lon_masked, mascara=load_mask_grid_NR(file_mask, name_mascara,name_variable_lon, name_variable_lat)
-    submatrix=determine_id_binary_grid_NR_fortran(part_post, lat_masked.flatten(), lon_masked.flatten(), mascara.flatten(), value_mask)
+    submatrix=determine_id_binary_grid_NR_vectorized(part_post, lat_masked.flatten(), lon_masked.flatten(), mascara.flatten(), value_mask)
+    
     submatrix=submatrix[np.argsort(submatrix[:, 0])]
 
     if filter_parcels_height:
@@ -1727,11 +1888,11 @@ def _forward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name_
         print ("Reading | " + model+" -> ",  lista_partposi[1])
     if key_gz==1:
         desc_gz(lista_partposi[1])
-        part_post_i=read_binaryFile_fortran(lista_partposi[1][:-3], type_file, x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain)
+        part_post_i=read_binaryFile_fortran(lista_partposi[1][:-3], type_file, x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
         cmd_rm= "rm -rf "+lista_partposi[1][:-3]
         os.system(cmd_rm)
     else:
-        part_post_i=read_binaryFile_fortran(lista_partposi[1], type_file, x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain)
+        part_post_i=read_binaryFile_fortran(lista_partposi[1], type_file, x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
     matrix_i=search_row_fortran(submatrix[:,0],part_post_i)
 
     dimX, dimY=matrix_i.shape
@@ -1752,7 +1913,7 @@ def _forward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name_
 
     local_list=lista_partposi[start+2:stop+2]
     local_results = np.empty((len(local_list), dimX, dimY))
-    local_results= read_proccesor(local_list, submatrix, rank,x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, model, key_gz, type_file, limit_domain)
+    local_results= read_proccesor(local_list, submatrix, rank,x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, model, key_gz, type_file, limit_domain, limit_height, value_height)
 
     if rank > 0:
         comm.Send(local_results, dest=0, tag=14)
@@ -1805,7 +1966,7 @@ def _forward_dq(lista_partposi ,file_mask, name_mascara,name_variable_lon, name_
 def _vector_wvrt(lista_partposi ,file_mask, name_mascara,name_variable_lon, name_variable_lat,lat_f, lon_f,rank,size, comm, type_file,
                  x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, model, method,threshold,filter_value,
                  value_mask, key_gz, path_output,use_vertical_layers, vertical_layers, filter_parcels_height, filter_vertical_layers,limit_domain, dates,
-                 dtime, totaltime, folder):
+                 dtime, totaltime, folder, limit_height, value_height):
     """
     Processes vector water vapor residence time (WVRT) data.
 
@@ -1857,15 +2018,16 @@ def _vector_wvrt(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
     if key_gz==1:
         desc_gz(name_file)
         part_post=read_binaryFile_fortran(name_file[:-3], type_file, x_left_lower_corner,y_left_lower_corner,
-               x_right_upper_corner,y_right_upper_corner, limit_domain)
+               x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
         cmd_rm= "rm -rf "+name_file[:-3]
         os.system(cmd_rm)
     else:
         part_post=read_binaryFile_fortran(name_file, type_file, x_left_lower_corner,y_left_lower_corner,
-               x_right_upper_corner,y_right_upper_corner, limit_domain)
+               x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
         
     lat_masked, lon_masked, mascara=load_mask_grid_NR(file_mask, name_mascara,name_variable_lon, name_variable_lat)
-    submatrix=determine_id_binary_grid_NR_fortran(part_post, lat_masked.flatten(), lon_masked.flatten(), mascara.flatten(), value_mask)
+    submatrix=determine_id_binary_grid_NR_vectorized(part_post, lat_masked.flatten(), lon_masked.flatten(), mascara.flatten(), value_mask)
+    
     submatrix=submatrix[np.argsort(submatrix[:, 0])]
     
     if rank==0:
@@ -1873,11 +2035,11 @@ def _vector_wvrt(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
 
     if key_gz==1:
         desc_gz(lista_partposi[-2])
-        part_post_i=read_binaryFile_fortran(lista_partposi[-2][:-3], type_file, x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, limit_domain)
+        part_post_i=read_binaryFile_fortran(lista_partposi[-2][:-3], type_file, x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
         cmd_rm= "rm -rf "+lista_partposi[-2][:-3]
         os.system(cmd_rm)
     else:
-        part_post_i=read_binaryFile_fortran(lista_partposi[-2], type_file, x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, limit_domain)
+        part_post_i=read_binaryFile_fortran(lista_partposi[-2], type_file, x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
     
     matrix_i=search_row_fortran(submatrix[:,0],part_post_i)
 
@@ -1904,7 +2066,7 @@ def _vector_wvrt(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
     local_list=lista_partposi[start:stop]
     local_results = np.empty((len(local_list), dimX, dimY))
     local_results = read_proccesor(local_list, submatrix, rank,x_left_lower_corner,y_left_lower_corner,
-               x_right_upper_corner,y_right_upper_corner, model, key_gz, type_file, limit_domain)
+               x_right_upper_corner,y_right_upper_corner, model, key_gz, type_file, limit_domain, limit_height, value_height)
 
     if rank > 0:
         comm.Send(local_results, dest=0, tag=14)
@@ -1940,7 +2102,7 @@ def _vector_wvrt(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
     a2=np.arange(len(tensor_t[:,0,0])-1)
      
     for i in a2[::-1]:
-        matrix = Kdif_python (tensor_t[i,:,:5], tensor_t[i+1,:,:5],-1.)
+        matrix = Kdif_python(tensor_t[i,:,:5], tensor_t[i+1,:,:5],-1.)
         matrix_result[i,:,2]=matrix[:,2]
         matrix_result[i,:,1]=matrix[:,1]
         matrix_result[i,:,0]=matrix[:,0]
@@ -1957,7 +2119,7 @@ def _vector_wvrt(lista_partposi ,file_mask, name_mascara,name_variable_lon, name
 
 def _only_partposit_particles(lista_partposi ,file_mask, name_mascara,name_variable_lon, name_variable_lat,lat_f, lon_f,rank,size, comm, type_file,
                  x_left_lower_corner,y_left_lower_corner, x_right_upper_corner,y_right_upper_corner, model, method,threshold,filter_value,
-                 value_mask, key_gz, path_output,use_vertical_layers, vertical_layers, filter_parcels_height, filter_vertical_layers,limit_domain): 
+                 value_mask, key_gz, path_output,use_vertical_layers, vertical_layers, filter_parcels_height, filter_vertical_layers,limit_domain, limit_height, value_height): 
     """
     Processes only particle positions data.
 
@@ -2005,15 +2167,16 @@ def _only_partposit_particles(lista_partposi ,file_mask, name_mascara,name_varia
     if key_gz==1:
         desc_gz(name_file)
         part_post=read_binaryFile_fortran(name_file[:-3], type_file, x_left_lower_corner,y_left_lower_corner,
-               x_right_upper_corner,y_right_upper_corner, limit_domain)
+               x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
         cmd_rm= "rm -rf "+name_file[:-3]
         os.system(cmd_rm)
     else:
         part_post=read_binaryFile_fortran(name_file, type_file, x_left_lower_corner,y_left_lower_corner,
-               x_right_upper_corner,y_right_upper_corner, limit_domain)
+               x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
         
     lat_masked, lon_masked, mascara=load_mask_grid_NR(file_mask, name_mascara,name_variable_lon, name_variable_lat)
-    submatrix=determine_id_binary_grid_NR_fortran(part_post, lat_masked.flatten(), lon_masked.flatten(), mascara.flatten(), value_mask)
+    submatrix=determine_id_binary_grid_NR_vectorized(part_post, lat_masked.flatten(), lon_masked.flatten(), mascara.flatten(), value_mask)
+
     submatrix=submatrix[np.argsort(submatrix[:, 0])]
         
     if rank==0:
@@ -2021,11 +2184,11 @@ def _only_partposit_particles(lista_partposi ,file_mask, name_mascara,name_varia
 
     if key_gz==1:
         desc_gz(lista_partposi[-2])
-        part_post_i=read_binaryFile_fortran(lista_partposi[-2][:-3], type_file, x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, limit_domain)
+        part_post_i=read_binaryFile_fortran(lista_partposi[-2][:-3], type_file, x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
         cmd_rm= "rm -rf "+lista_partposi[-2][:-3]
         os.system(cmd_rm)
     else:
-        part_post_i=read_binaryFile_fortran(lista_partposi[-2], type_file, x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, limit_domain)
+        part_post_i=read_binaryFile_fortran(lista_partposi[-2], type_file, x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, limit_domain, limit_height, value_height)
     
     matrix_i=search_row_fortran(submatrix[:,0],part_post_i)
     
@@ -2052,7 +2215,7 @@ def _only_partposit_particles(lista_partposi ,file_mask, name_mascara,name_varia
     local_list=lista_partposi[start:stop]
     local_results = np.empty((len(local_list), dimX, dimY))
     local_results = read_proccesor(local_list, submatrix, rank,x_left_lower_corner,y_left_lower_corner,
-               x_right_upper_corner,y_right_upper_corner, model, key_gz, type_file, limit_domain)
+               x_right_upper_corner,y_right_upper_corner, model, key_gz, type_file, limit_domain, limit_height, value_height)
 
     if rank > 0:
         comm.Send(local_results, dest=0, tag=14)
@@ -2264,12 +2427,12 @@ def is_binary(file_path):
     """
     try:
         with open(file_path, "rb") as f:
-            chunk = f.read(1024)  
-            if b"\x00" in chunk: 
+            chunk = f.read(1024)  # Read a small chunk of the file
+            if b"\x00" in chunk:  # If NULL bytes exist, it's binary
                 return True
     except Exception:
         return False
-    return False 
+    return False  # Assume text file if no binary indicators are found
 
 def verify_binary_files(file_list):
     """
@@ -2368,7 +2531,7 @@ def main_process(path, paso, comm, size, rank, resolution, numPdX, numPdY, dtime
          threshold, filter_value, output_txt, output_npy,output_nc, value_mask, key_gz, save_position_part, use_vertical_layers, 
          vertical_layers,save_position_dqdt, filter_parcels_height,filter_vertical_layers, plotting_parcels_t0, 
          plotting_parcels_tracks_on_map, plotting_3Dparcels_tracks, maps_limits, noleap, limit_domain, method_wvrt, 
-         plotting_moisture_sink_source, limit_plot):
+         plotting_moisture_sink_source, limit_plot, limit_height, value_height):
     """
     Main processing function for TROVA.
 
@@ -2464,7 +2627,7 @@ def main_process(path, paso, comm, size, rank, resolution, numPdX, numPdY, dtime
     
     if paso==1:
         matrix_result, id_part, q_ini, partpos, lat_masked, lon_masked, mascara =_forward_dq(lista_partposi, file_mask, name_mascara,name_variable_lon, name_variable_lat,lat, lon,rank,size,comm, type_file,x_left_lower_corner,y_left_lower_corner, 
-                                                                            x_right_upper_corner,y_right_upper_corner, model, value_mask, key_gz, path_output,use_vertical_layers, vertical_layers,filter_parcels_height,filter_vertical_layers, limit_domain)
+                                                                            x_right_upper_corner,y_right_upper_corner, model, value_mask, key_gz, path_output,use_vertical_layers, vertical_layers,filter_parcels_height,filter_vertical_layers, limit_domain, limit_height, value_height)
         matrix_save=np.empty((matrix_result.shape[0],matrix_result.shape[1],6))
         matrix_save[:,:,:-2]=matrix_result
         matrix_save[:,:,-2]=id_part
@@ -2481,8 +2644,8 @@ def main_process(path, paso, comm, size, rank, resolution, numPdX, numPdY, dtime
     if paso == -1:
         matrix_result, id_part, matrix_result_por,q_ini,partpos, lat_masked, lon_masked, mascara =_backward_dq(lista_partposi, file_mask, name_mascara,name_variable_lon, name_variable_lat,lat, lon,rank,size,comm, type_file, x_left_lower_corner, y_left_lower_corner, 
                                                                                                             x_right_upper_corner, y_right_upper_corner, model, method,threshold,filter_value, value_mask, key_gz, path_output,use_vertical_layers, vertical_layers,filter_parcels_height,
-                                                                                                            filter_vertical_layers, limit_domain, listdates[-1:],dtime, totaltime, folder, method_wvrt)
-
+                                                                                                            filter_vertical_layers, limit_domain, listdates[-1:],dtime, totaltime, folder, method_wvrt, limit_height, value_height)
+     
         matrix_save=np.empty((matrix_result.shape[0],matrix_result.shape[1],6))
         matrix_save[:,:,:-2]=matrix_result
         matrix_save[:,:,-2]=id_part
@@ -2499,16 +2662,16 @@ def main_process(path, paso, comm, size, rank, resolution, numPdX, numPdY, dtime
     if paso == -2:
         _vector_wvrt(lista_partposi, file_mask, name_mascara,name_variable_lon, name_variable_lat,lat, lon,rank,size,comm, type_file, x_left_lower_corner, y_left_lower_corner, 
                                                                                                             x_right_upper_corner, y_right_upper_corner, model, method,threshold,filter_value, value_mask, key_gz, path_output,use_vertical_layers, vertical_layers,filter_parcels_height,
-                                                                                                            filter_vertical_layers, limit_domain, listdates[-1:],dtime, totaltime, folder)
+                                                                                                            filter_vertical_layers, limit_domain, listdates[-1:],dtime, totaltime, folder, limit_height, value_height)
     
     if paso == -3:
         partpos =_only_partposit_particles(lista_partposi, file_mask, name_mascara,name_variable_lon, name_variable_lat,lat, lon,rank,size,comm, type_file, x_left_lower_corner, y_left_lower_corner, 
                                                                                                             x_right_upper_corner, y_right_upper_corner, model, method,threshold,filter_value, value_mask, key_gz, path_output,use_vertical_layers, vertical_layers,filter_parcels_height,
-                                                                                                            filter_vertical_layers, limit_domain)         
+                                                                                                            filter_vertical_layers, limit_domain, limit_height, value_height)         
         if rank==0:
-            if save_position_part:
-               ordinal_dates_part = list(map(lambda date: convert_date_to_ordinal(*decompose_date(date)), listdates))
-               write_nc(ordinal_dates_part, partpos, "partpos",filename=path_output+folder+"/"+folder+"_parposit_back")
+            #if save_position_part:
+            ordinal_dates_part = list(map(lambda date: convert_date_to_ordinal(*decompose_date(date)), listdates))
+            write_nc(ordinal_dates_part, partpos, "partpos",filename=path_output+folder+"/"+folder+"_parposit_back")
         
     if rank == 0:
         if paso in [-1, 1]:
@@ -2685,6 +2848,10 @@ def TROVA_main(input_file):
     plotting_moisture_sink_source = check_paths(content,"plotting_moisture_sink_source") 
     limit_plot = check_paths(content,"limits_plot")
 
+    #additional parameters
+    limit_height = check_paths(content,"limit_height")
+    value_height = check_paths(content,"value_height")
+
     save_position_part = str2boolean(save_position_part)
     use_vertical_layers = str2boolean(use_vertical_layers)
     save_position_dqdt = str2boolean(save_position_dqdt)
@@ -2698,6 +2865,7 @@ def TROVA_main(input_file):
     noleap = str2boolean(noleap)
     limit_domain = str2boolean(limit_domain)
     method_wvrt = str2boolean(method_wvrt)
+    limit_height = str2boolean(limit_height)
 
     if filter_parcels_dq:
        filter_value=1
@@ -2708,6 +2876,12 @@ def TROVA_main(input_file):
         limit_domain = 1
     else:
         limit_domain = 0
+    
+    #additional parameters
+    if limit_height:
+        limit_height = 1
+    else:
+        limit_height = 0
 
     if mode=="backward":
        paso=-1
@@ -2757,15 +2931,15 @@ def TROVA_main(input_file):
                 print ('--------------------------------TROVA has started-----------------------------------------')
                 print (' *****************************************************************************************')
                 print (" *                    EPhysLab (Environmental Physics Laboratory), Spain                 *")
-                print (" *                      Galician Supercomputing Center, Spain                            *")
+                print (" *                      Galician Supercomputing Center (CESGA), Spain                    *")
                 print (" *                        TRansport Of water VApor (TROVA)                               *")
                 print (" *                         Version " +str(get_currentversion())+" ("+ str(get_lastupdate())+")                                    *")
                 TROVA_LOGO()
                 print (" *                       Edificio Campus da Auga/Edificio CESGA                          *")
                 print (" *                             University of Vigo/CESGA                                  *")
                 print (" *                           www.ephyslab.uvigo.es/www.cesga.es                          *")
-                print (" *      contact: jose.carlos.fernandez.alvarez@uvigo.es (jcfernandez@cesga.es),          *")
-                print (" *                            albenis.perez.alarcon@uvigo.es                             *")
+                print (" *      contact: jose.carlos.fernandez.alvarez@uvigo.es (jcfernandez@cesga.es)           *")
+                print (" *       Official web: https://github.com/tramo-ephyslab/TROVA-master/tree/main          *")
                 print (" *****************************************************************************************")
                 print ('------------------------------------------------------------------------------------------')
                 print ("                                                                                          ")
@@ -2774,9 +2948,9 @@ def TROVA_main(input_file):
                 
                 if paso==1 or paso==-1:
                     if method==1:
-                        print ("+ You are using methodology of Stohl and James (2005) (DOI:10.1175/1525-7541(2004)005<0656:ALAOTA>2.0.CO;2)")
+                        print ("+ You are using methodology of Stohl and James (2005) (DOI: 10.1175/1525-7541(2004)005<0656:ALAOTA>2.0.CO;2)")
                     if method==2:
-                        print ("+ You are using methodology of Sodemann et al. (2008) (DOI:10.1002/2017JD027543)")
+                        print ("+ You are using methodology of Fremme and Sodemann (2019) (DOI: 10.5194/hess-23-2525-2019)")
                     print ('+ Target region ->  '+name_target_region)
                     print ('+ CPUs for tracking ->   '+ str(size))
                     print("+ Tracking mode -> " + str(mode))
@@ -2792,6 +2966,7 @@ def TROVA_main(input_file):
                     print("+ Plot 3D parcels trajectories -> " + str(plotting_3Dparcels_tracks))
                     print("+ Plot the pattern of moisture sources or sinks -> " + str(plotting_moisture_sink_source))
                     print("+ Calculate the residence time of water vapor -> " + str(method_wvrt))
+                    print("+ Limiting the height of the particles to be considered in the analysis -> " + str(bool(limit_height))+ ", height value -> "+ str(value_height/1000)+" km")
                 if paso==-2:
                     print ("+ You are using methodology of Läderach and Sodemann (2016) to calculate the residence time of water vapor (DOI: 10.1002/2015GL067449)")
                     print ('+ Target region ->  '+name_target_region)
@@ -2800,6 +2975,7 @@ def TROVA_main(input_file):
                     print("+ Simulation starts -> " + fecha)
                     print("+ Lagrangian Model -> " + str(model))
                     print("+ Mask file -> " + file_mask)
+                    print("+ Limiting the height of the particles to be considered in the analysis -> " + str(bool(limit_height))+ ", value="+ str(value_height/1000)+" km")
                 if paso==-3:
                     print ("+ You are saving the variables associated with the particles within the target region")
                     print ('+ Target region ->  '+name_target_region)
@@ -2808,7 +2984,7 @@ def TROVA_main(input_file):
                     print("+ Simulation starts -> " + fecha)
                     print("+ Lagrangian Model -> " + str(model))
                     print("+ Mask file -> " + file_mask)
-
+                    print("+ Limiting the height of the particles to be considered in the analysis -> " + str(bool(limit_height))+ ", value="+ str(value_height/1000)+" km")
                 print ('                                                                                          ')
                 print ('------------------------------------------------------------------------------------------')
                 print ('                              PROCESSING PARTPOSIT FILES                                  ')
@@ -2820,7 +2996,7 @@ def TROVA_main(input_file):
                type_file,masa,numP,x_left_lower_corner,y_left_lower_corner,x_right_upper_corner,y_right_upper_corner, model, method,threshold, filter_value,
                output_txt,output_npy,output_nc, value_mask, key_gz, save_position_part,use_vertical_layers, vertical_layers,save_position_dqdt, filter_parcels_height,
                filter_vertical_layers, plotting_parcels_t0, plotting_parcels_tracks_on_map, plotting_3Dparcels_tracks, maps_limits, noleap, limit_domain, method_wvrt, 
-               plotting_moisture_sink_source, limit_plot)
+               plotting_moisture_sink_source, limit_plot, limit_height, value_height)
             elapsed_time = time() - start_time
             if rank==0:
                 print ('                                                                                          ')

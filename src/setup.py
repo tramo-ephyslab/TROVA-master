@@ -31,9 +31,9 @@ else:
 
 setuptools.setup(
     name="trova",
-    version="1.1.1",
-    author="José C. Fernández-Alvarez & Albenis Pérez-Alarcón",
-    author_email="jose.carlos.fernandez.alvarez@uvigo.es & albenis.pérez.alarcon@uvigo.es",
+    version="1.1.2",
+    author="José C. Fernández-Alvarez",
+    author_email="jose.carlos.fernandez.alvarez@uvigo.es",
     description="TROVA is a Python software for studying moisture sources and sinks",
     long_description=long_description,
     long_description_content_type="text/markdown",

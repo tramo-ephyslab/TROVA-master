@@ -1,6 +1,6 @@
 # TROVA: TRansport Of water VApor
 
-TTRansport Of water VApor (TROVAv1.1.1) is a software developed in Python and Fortran
+TRansport Of water VApor (TROVAv1.1.2) is a software developed in Python and Fortran
 for the study of moisture sources and sinks. It has been developed within the LAGRIMA and 
 SETESTRELO projects at the EPhysLab (Environmental Physics Laboratory) at the University of Vigo. 
 Subsequently, its development and updating have continued within a collaboration between the University 
@@ -13,7 +13,7 @@ These can be consulted at the following web address: https://ephyslab.uvigo.es/e
 #*                    EPhysLab (Environmental Physics Laboratory), Spain                 *
 #*                        Galician Supercomputing Center, Spain                          *
 #*                        TRansport Of water VApor (TROVA)                               *
-#*                             version 1.1.1 (15-02-2025)                                *
+#*                             version 1.1.2 (18-02-2026)                                *
 #*                        _____ __    ____                                               *
 #*                          |  |  |  /    \ \        //\                                 *
 #*                          |  |__| /      \ \      //__\                                *
@@ -23,8 +23,7 @@ These can be consulted at the following web address: https://ephyslab.uvigo.es/e
 #*                       Edificio Campus da Auga/Edificio CESGA                          *
 #*                            University of Vigo/CESGA                                   *
 #*                          www.ephyslab.uvigo.es/www.cesga.es                           *
-#*      contact: jose.carlos.fernandez.alvarez@uvigo.es (jcfernandez@cesga.es),          * 
-#*                         albenis.perez.alarcon@uvigo.es                                *
+#*      contact: jose.carlos.fernandez.alvarez@uvigo.es (jcfernandez@cesga.es)           * 
 #*****************************************************************************************
 ```
 
@@ -105,12 +104,14 @@ conda create -n py38 python=3.8
 ### Input file
 
 To use TROVA you must modified the input file depending on the problem to be solved. This is an example that can be used as a test with the data presented below. A description of each parameter is shown below:
- ```
- #*****************************************************************************************
+```
+
+
+#*****************************************************************************************
 #*                    EPhysLab (Environmental Physics Laboratory), Spain                 *
 #*                        Galician Supercomputing Center, Spain                          *
 #*                        TRansport Of water VApor (TROVA)                               *
-#*                             version 1.1.1 (15-02-2025)                                *
+#*                             version 1.1.2 (18-02-2026)                                *
 #*                        _____ __    ____                                               *
 #*                          |  |  |  /    \ \        //\                                 *
 #*                          |  |__| /      \ \      //__\                                *
@@ -120,8 +121,7 @@ To use TROVA you must modified the input file depending on the problem to be sol
 #*                       Edificio Campus da Auga/Edificio CESGA                          *
 #*                            University of Vigo/CESGA                                   *
 #*                          www.ephyslab.uvigo.es/www.cesga.es                           *
-#*      contact: jose.carlos.fernandez.alvarez@uvigo.es (jcfernandez@cesga.es),          * 
-#*                         albenis.perez.alarcon@uvigo.es                                *
+#*      contact: jose.carlos.fernandez.alvarez@uvigo.es (jcfernandez@cesga.es)           * 
 #*****************************************************************************************
 #------------------------------------------------------------------------------------------
 #Path to FLEXPART or FLEXPART-WRF partposit binary files [str]
@@ -264,6 +264,12 @@ plotting_moisture_sink_source = True
 
 #Color pallete limits for plotting [min, max, step] [float]
 limits_plot = [0, 3.2, 0.2]
+
+#height value to limit the height of the particles to be considered in the analysis
+value_height = 21000
+
+#parameter to limit the height of the particles to be considered in the analysis
+limit_height = False
 ```
 ### Input data
 
@@ -292,7 +298,7 @@ On a Linux computer:
 ```
 mpirun -np num_CPU python TROVA.py input_file_path
 
-e.g (mpirun -np 4 python TROVA.py input_back_TC.cfg)
+e.g (mpirun -np 4 python TROVA.py input_back_WRF_EVAL.cfg)
 ```
 
 On a HPC with Linux (See https://github.com/tramo-ephyslab/TROVA-master/blob/main/run_example_HPC/run_example.sh):
@@ -367,7 +373,7 @@ This code is not bug-free. Please report any bugs through 'Issues': https://gith
 
 ## Contact and support
 
-José Carlos Fernández Alvarez (jose.carlos.fernandez.alvarez@uvigo.es, jcfernandez@cesga.es) and Albenis Pérez Alarcón (albenis.perez.alarcon@uvigo.es).
+José C. Fernández-Alvarez (jose.carlos.fernandez.alvarez@uvigo.es, jcfernandez@cesga.es).
 
 # LICENSE
 
