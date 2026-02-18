@@ -373,7 +373,7 @@ This code is not bug-free. Please report any bugs through 'Issues': https://gith
 
 ## Contact and support
 
-José Carlos Fernández Alvarez (jose.carlos.fernandez.alvarez@uvigo.es, jcfernandez@cesga.es).
+José C. Fernández-Alvarez (jose.carlos.fernandez.alvarez@uvigo.es, jcfernandez@cesga.es).
 
 # LICENSE
 

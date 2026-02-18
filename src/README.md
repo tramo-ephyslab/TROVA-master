@@ -106,7 +106,7 @@ conda create -n py38 python=3.8
 To use TROVA you must modified the input file depending on the problem to be solved. This is an example that can be used as a test with the data presented below. A description of each parameter is shown below:
 ```
 
-```
+
 #*****************************************************************************************
 #*                    EPhysLab (Environmental Physics Laboratory), Spain                 *
 #*                        Galician Supercomputing Center, Spain                          *
@@ -373,7 +373,7 @@ This code is not bug-free. Please report any bugs through 'Issues': https://gith
 
 ## Contact and support
 
-José Carlos Fernández Alvarez (jose.carlos.fernandez.alvarez@uvigo.es, jcfernandez@cesga.es).
+José C. Fernández-Alvarez (jose.carlos.fernandez.alvarez@uvigo.es, jcfernandez@cesga.es).
 
 # LICENSE
 
