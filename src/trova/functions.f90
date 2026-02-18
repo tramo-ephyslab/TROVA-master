@@ -38,7 +38,7 @@ subroutine K_dq(result, tensor, lon, lat, numPdY, numPdX, nlen, npart)
             endif
         enddo
     enddo
-end subroutine
+end subroutine K_dq
 
 !> Computes the sum of tensor values within specified longitude, latitude, and vertical layer bounds.
 !!
@@ -85,8 +85,7 @@ subroutine K_dq_layers(result, tensor, z0, z1, lon, lat, numPdY, numPdX, nlen, n
             endif
         enddo
     enddo
-    
-end subroutine
+end subroutine K_dq_layers
 
 !> Computes the average of tensor values within specified longitude and latitude bounds.
 !!
@@ -142,111 +141,7 @@ subroutine K_dq_por(result, tensor, lon, lat, numPdY, numPdX, nlen, npart)
             endif
         enddo
     enddo
-
-end subroutine
-
-!> Reads a binary file and extracts relevant data within specified domain limits.
-!!
-!! This subroutine reads a binary file and extracts relevant data, storing it in the output array.
-!! If domain limits are specified, only data within those limits is included in the output.
-!!
-!! @param output_ (real(8), intent(out)) The output array containing the extracted data.
-!! @param filename (character(500), intent(in)) The name of the binary file to read.
-!! @param nparts (integer, intent(in)) The number of parts in the binary file.
-!! @param x_l (real, intent(in)) The lower X-coordinate of the domain.
-!! @param y_l (real, intent(in)) The lower Y-coordinate of the domain.
-!! @param x_r (real, intent(in)) The upper X-coordinate of the domain.
-!! @param y_r (real, intent(in)) The upper Y-coordinate of the domain.
-!! @param limit_domian (integer, intent(in)) Whether to limit the domain (1 for yes, 0 for no).
-
-subroutine read_binary_file(output_,filename, nparts,x_l,y_l, x_r,y_r, limit_domian)
-
-    integer,parameter :: rk=kind(1.0)
-    real(rk)         :: b1
-    integer          :: id1,i,k,idx,index_id, ty
-    integer(kind=4)  :: n1,nparts, cant
-    integer bytes,aux_bytes
-    real *8  :: matrix(nparts,13)
-    real *8 :: output(nparts,11)
-    real *8, intent(out) :: output_(nparts,11)
-    character(500) :: filename
-    real, intent(in) :: x_l,y_l, x_r,y_r
-    
-    open(1,file=filename,access="stream",form="unformatted")
-    bytes=(nparts+1)*60 +12
-    read(1, pos=1)ty
-
-    if (ty==4)then
-       i=17
-       aux_bytes=69
-    else   
-       i=25
-       aux_bytes=77
-    endif
-   
-    index_id=1
-    do while (i<bytes-60)
-	    read(1,pos=i) id1 
-	    matrix(index_id,1)=id1
-	    idx=2
-        do k=i+4,aux_bytes-1,4
-		    read(1,pos=k) n1
-		    read(1,pos=k) b1 
-            matrix(index_id,idx)=b1
-		    idx=idx+1
-        end do
-	    i=i+60
-	    aux_bytes=aux_bytes+60
-	    index_id=index_id+1
-    end do
-    
-    output(:,1)=matrix(:,1)
-    output(:,2)=matrix(:,2)
-    output(:,3)=matrix(:,3)
-    output(:,4)=matrix(:,8)
-    output(:,5)=matrix(:,4)
-    output(:,6)=matrix(:,6)
-    output(:,7)=matrix(:,9)
-    output(:,8)=matrix(:,10)
-    output(:,9)=matrix(:,11)
-    output(:,10)=matrix(:,12)
-    output(:,11)=matrix(:,13)
- 
-    output_(:,:)=-999.
-    
-   if (limit_domian == 1) then
-        cant=1
-        do j=1, nparts-1
-           if (output(j,2) .ge. x_l .and. output(j,2) .le. x_r .and. &
-              output(j,3) .ge. y_l .and. output(j,3) .le. y_r) then
-              output_(cant,:)=output(j,:)
-              cant=cant+1
-           endif
-        enddo
-    else
-        output_(:,:)=output(:,:)
-    endif
-    close(1)
-return
-end subroutine read_binary_file
-
-!> Determines the size of a file in bytes.
-!!
-!! This subroutine determines the size of a specified file in bytes and returns the size.
-!!
-!! @param bytes (integer, intent(out)) The size of the file in bytes.
-!! @param filename (character(500), intent(in)) The name of the file to check.
-
-subroutine len_file(bytes, filename)
-
-    character(500) :: filename
-    character(len=256) :: message
-    integer :: ios,x
-    logical :: foundit
-    integer, intent(out) :: bytes
-    inquire(file=filename,exist=foundit,size=x,iostat=ios,iomsg=message)
-    bytes=x
-end subroutine
+end subroutine K_dq_por
 
 !> Computes the sum of tensor values within specified thresholds.
 !!
@@ -313,50 +208,7 @@ subroutine K_dq_So(result,matrix,matrix_ind,threshold,npart, ntime)
             endif
         enddo
     enddo
-end subroutine
-
-!> Filters particles based on a specified threshold.
-!!
-!! This subroutine filters particles based on a specified threshold and step value (paso).
-!! It updates the output array with the filtered particles and counts the number of filtered particles.
-!!
-!! @param output (real, intent(out)) The output array containing the filtered particles.
-!! @param count_part (integer, intent(out)) The count of filtered particles.
-!! @param matrix (real, intent(in)) The input matrix containing particle data.
-!! @param matrix_ref (real, intent(in)) The reference matrix for filtering.
-!! @param paso (integer, intent(in)) The step value indicating the direction of the simulation (-1 for backward, 1 for forward).
-!! @param threshold (real, intent(in)) The threshold value for filtering.
-!! @param numP (integer, intent(in)) The number of particles.
-
-subroutine filter_part(output,count_part,matrix,matrix_ref, paso, threshold, numP)
-  
-    real, intent(in) :: matrix(numP,4)
-    real, intent(in) :: matrix_ref(numP, 4)
-    integer, intent(in) :: paso
-    real, intent(in) :: threshold 
-    real, intent(out) :: output(numP, 4)
-    integer, intent(out) :: count_part
-    integer :: i, numP
-   
-    output(:,:)=-999.9
-    count_part=0
-    if (paso==-1)then
-        do i=1, numP
-            if (matrix_ref(i,3) .le. threshold .and. matrix_ref(i,3) /= -999.9) then
-               output(i,:)=matrix(i,:)
-               count_part=count_part+1
-            endif
-        enddo
-    endif
-    
-    if (paso==1)then 
-        do i=1, numP
-            if (matrix_ref(i,3) .ge. threshold) then
-               output(i,:)=matrix(i,:)
-            endif
-        enddo
-    endif
-end subroutine
+end subroutine K_dq_So
 
 !> Filters particles based on a specified threshold.
 !!
@@ -399,7 +251,7 @@ subroutine filter_part2(output,count_part,matrix,matrix_ref, paso, threshold, nu
             endif
         enddo
     endif
-end subroutine
+end subroutine filter_part2
 
 !> Filters particles based on height within specified layers.
 !!
@@ -445,105 +297,97 @@ subroutine filter_part_by_height(output,count_part,matrix,matrix_ref, paso, lowe
             endif
         enddo
     endif
-end subroutine
+end subroutine filter_part_by_height
 
-!> Searches for rows in the matrix that match the values in the list.
+!> Reads a FLEXPART binary output file and filters particles by domain and/or height.
 !!
-!! This subroutine searches for rows in the matrix that match the values in the list.
-!! It updates the output array with the matching rows.
+!! This subroutine reads particle data from a FLEXPART unformatted binary file and stores
+!! the output in a matrix. Optionally, it filters the particles based on:
+!! - a geographical domain (longitude and latitude bounds),
+!! - a vertical height threshold.
 !!
-!! @param output (real, intent(out)) The output array containing the matching rows.
-!! @param matrix (real, intent(in)) The input matrix containing data.
-!! @param lista (real, intent(in)) The list of values to search for.
-!! @param len_lista (integer, intent(in)) The length of the list.
-!! @param numP (integer, intent(in)) The number of rows in the matrix.
-
-subroutine search_row(output,matrix,lista,len_lista,numP)
-   
-    real, intent(in) :: matrix(numP,11)
-    real, intent(in) :: lista(len_lista)
-    !integer, intent(in) :: lista(len_lista)
-    real, intent(out) :: output(len_lista, 11)
-    integer :: i,j, numP
-    
-    output(:,:)=-999.9
-   
-    do i=1, len_lista
-        do j=1, numP
-            if (int(matrix(j,1))==int(lista(i))) then
-              output(i,:) = matrix(j,:)
-           endif 
-        enddo
-    enddo
-        
-end subroutine
-
-!> Determines the indices of elements in value_mascara that match value_mask.
+!! Particles that do not meet the specified filtering criteria are skipped.
+!! The output array is initialized with -999 and filled with valid particle data.
 !!
-!! This subroutine searches through the value_mascara array and sets the corresponding
-!! indices in the vector array where the elements match the value_mask.
-!!
-!! @param vector (integer, intent(out)) The output array containing the indices of matching elements.
-!! @param value_mascara (integer, intent(in)) The input array to search through.
-!! @param value_mask (integer, intent(in)) The value to match in the value_mascara array.
-!! @param len_value_mascara (integer, intent(in)) The length of the value_mascara array.
+!! @param output_ (real*8, intent(out)) A 2D array of shape (nparts, 11) where each row contains:
+!!   - 1: Particle ID (npoint)
+!!   - 2: Longitude (xlon)
+!!   - 3: Latitude (ylat)
+!!   - 4: Specific humidity (qvi)
+!!   - 5: Vertical height (ztra1)
+!!   - 6: Topography (topo)
+!!   - 7: Density (rhoi)
+!!   - 8: PBL height (hmixi)
+!!   - 9: Tropopause height (tri)
+!!   - 10: Temperature (tti)
+!!   - 11: Particle mass (xmass)
+!! @param filename (character, intent(in)) Path to the FLEXPART binary file to read.
+!! @param nparts (integer(kind=4), intent(in)) Maximum number of particles to read.
+!! @param x_l (real, intent(in)) Left (minimum) longitude of the geographic domain.
+!! @param y_l (real, intent(in)) Bottom (minimum) latitude of the geographic domain.
+!! @param x_r (real, intent(in)) Right (maximum) longitude of the geographic domain.
+!! @param y_r (real, intent(in)) Top (maximum) latitude of the geographic domain.
+!! @param limit_domain (integer, intent(in)) Flag to apply domain filter (1 = apply, 0 = ignore).
+!! @param limit_height (integer, intent(in)) Flag to apply height filter (1 = apply, 0 = ignore).
+!! @param value_height (real, intent(in)) Maximum allowed height if limit_height = 1.
 
-subroutine determined_id(vector, value_mascara,value_mask,len_value_mascara)
+subroutine read_binary_file_flexpart_height(output_, filename, nparts, x_l, y_l, x_r, y_r, limit_domain, limit_height, value_height)
 
-    integer, intent(in) :: value_mascara(len_value_mascara)
-    integer, intent(out) :: vector(len_value_mascara)
-    integer :: i,j, len_value_mascara, value_mask
-    
-    vector = -999
+    implicit none
+    integer, parameter :: rk = kind(1.0)
+    integer(kind=4), intent(in) :: nparts
+    real*8, intent(out) :: output_(nparts, 11)
+    character(*), intent(in) :: filename
+    real, intent(in) :: x_l, y_l, x_r, y_r, value_height
+    integer, intent(in) :: limit_domain, limit_height
 
-    do j=1,len_value_mascara
-        if (value_mascara(j)==value_mask) then
-           vector(j)=j-1
+    integer :: i, cant, ios
+    integer :: unitpartout, itime
+    integer :: npoint, itramem
+    real :: xlon, ylat, ztra1, topo, pvi, qvi, rhoi, hmixi, tri, tti, xmass
+
+    cant = 1
+    unitpartout = 1
+
+    output_(:,:) = -999
+
+    open(unitpartout, file=filename, form='unformatted', IOSTAT=ios)
+    if (ios /= 0) then
+        print *, 'Error openning the file:', filename
+        return
+    endif
+
+    read(unitpartout) itime
+
+    do i = 1, nparts
+        read(unitpartout, IOSTAT=ios) npoint, xlon, ylat, ztra1, itramem, topo, pvi, qvi, rhoi, hmixi, tri, tti, xmass
+        if (ios /= 0) exit
+
+        if (limit_height == 1) then
+            if (ztra1 > value_height) cycle
         endif
-    enddo
-end subroutine
 
-!> Computes the difference between two matrices based on a specified step value (paso).
-!!
-!! This subroutine computes the difference between two matrices (matrix1 and matrix2) based on a specified step value (paso).
-!! It updates the output array with the computed differences.
-!!
-!! @param output (real(8), intent(out)) The output array containing the computed differences.
-!! @param matrix1 (real(8), intent(in)) The first input matrix.
-!! @param matrix2 (real(8), intent(in)) The second input matrix.
-!! @param paso (real, intent(in)) The step value indicating the direction of the simulation (-1 for backward, 1 for forward).
-!! @param dx (integer, intent(in)) The number of rows in the matrices.
-!! @param dy (integer, intent(in)) The number of columns in the matrices.
+        ! Filtro por dominio si se activa
+        if (limit_domain == 1) then
+            if (xlon < x_l .or. xlon > x_r) cycle
+            if (ylat < y_l .or. ylat > y_r) cycle
+        endif
 
-subroutine Kdif(output, matrix1, matrix2, paso, dx, dy)
+        output_(cant,1) = npoint   ! parcel id
+        output_(cant,2) = xlon     ! longitude
+        output_(cant,3) = ylat     ! latitude
+        output_(cant,4) = qvi      ! specific humidity
+        output_(cant,5) = ztra1    ! vertical height
+        output_(cant,6) = topo     ! topography
+        output_(cant,7) = rhoi     ! density
+        output_(cant,8) = hmixi    ! PBL height
+        output_(cant,9) = tri      ! tropopause height
+        output_(cant,10) = tti     ! temperature
+        output_(cant,11) = xmass   ! mass
 
-    integer :: dx,dy, i
-    real *8, intent(in):: matrix1(dx,dy)
-    real *8, intent(in):: matrix2(dx,dy)
-    real, intent(in) :: paso
-    real *8, intent(out):: output(dx,dy-1)
-    
-    output(:,:)=-999.9
+        cant = cant + 1
+    end do
 
-    if (paso == -1.) then
-        do i=1,dx
-            if (int(matrix1(i,1)) /= int(-999.9) .and. int(matrix2(i,1)) /= int(-999.9)) then 
-               output(i,3)=matrix2(i,4)-matrix1(i,4)
-               output(i,2)=matrix1(i,3)
-               output(i,1)=matrix1(i,2)
-               output(i,4)=matrix1(i,5)
-            endif
-        enddo
-    endif 
+    close(unitpartout)
 
-    if (paso == 1.) then
-        do i=1,dx
-            if (int(matrix2(i,1)) /= int(-999.9) .and. int(matrix1(i,1)) /= int(-999.9)) then 
-                output(i,3)=matrix2(i,4)-matrix1(i,4)
-                output(i,2)=matrix2(i,3)
-                output(i,1)=matrix2(i,2)
-                output(i,4)=matrix2(i,5)
-            endif
-        enddo
-    endif 
-end subroutine
+end subroutine read_binary_file_flexpart_height
